@@ -21,6 +21,7 @@ export default function NoLoginTransfer() {
   const connectionRef = useRef(null);
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0);
+  const pingIntervalRef = useRef(null); // 🛠️ NEW: Ref to hold our Heartbeat timer
   
   // Ref to store incoming file chunks for massive files
   const incomingFilesRef = useRef({});
@@ -28,6 +29,21 @@ export default function NoLoginTransfer() {
   // Generate short 6-digit code
   const generateRoomCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // 🛠️ NEW: Function to start the invisible heartbeat
+  const startHeartbeat = (conn) => {
+    if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+    pingIntervalRef.current = setInterval(() => {
+      // Send a tiny empty ping every 10 seconds so the router never drops the connection
+      if (conn.open) {
+        conn.send({ type: 'ping' });
+      }
+    }, 10000); 
+  };
+
+  const stopHeartbeat = () => {
+    if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
   };
 
   // Initialize PeerJS
@@ -51,6 +67,7 @@ export default function NoLoginTransfer() {
         conn.on('open', () => {
           setConnected(true);
           setStatus('Connected!');
+          startHeartbeat(conn); // Start heartbeat when someone joins
         });
         
         conn.on('data', handleIncomingData);
@@ -58,6 +75,7 @@ export default function NoLoginTransfer() {
         conn.on('close', () => {
           setConnected(false);
           setStatus('Connection closed');
+          stopHeartbeat();
         });
       });
 
@@ -77,6 +95,7 @@ export default function NoLoginTransfer() {
 
     return () => {
       if (peerRef.current) peerRef.current.destroy();
+      stopHeartbeat();
     };
   }, []);
 
@@ -94,6 +113,7 @@ export default function NoLoginTransfer() {
       connectionRef.current = conn;
       setConnected(true);
       setStatus('Connected!');
+      startHeartbeat(conn); // Start heartbeat when we join
     });
 
     conn.on('data', handleIncomingData);
@@ -101,10 +121,12 @@ export default function NoLoginTransfer() {
     conn.on('close', () => {
       setConnected(false);
       setStatus('Connection closed');
+      stopHeartbeat();
     });
 
     conn.on('error', (err) => {
       setStatus('Could not connect - check the room code');
+      stopHeartbeat();
     });
   };
 
@@ -112,6 +134,9 @@ export default function NoLoginTransfer() {
    * 📥 RECEIVER LOGIC
    */
   const handleIncomingData = async (data) => {
+    // 🛠️ NEW: Silently ignore heartbeat pings
+    if (data.type === 'ping') return; 
+
     if (data.type === 'file-start') {
       incomingFilesRef.current[data.fileName] = {
         chunks: [],
@@ -152,7 +177,7 @@ export default function NoLoginTransfer() {
   };
 
   /**
-   * 📤 SENDER LOGIC (Fully Patched & Safe)
+   * 📤 SENDER LOGIC (Adaptive Throttling for Massive Files)
    */
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
@@ -170,10 +195,23 @@ export default function NoLoginTransfer() {
         });
 
         let offset = 0;
-        let chunkCount = 0;
         let lastReportedProgress = 0;
 
         while (offset < file.size) {
+          // 🛠️ FIX: Dynamic Adaptive Pacing
+          // If the browser has more than 4MB queued up, pause JS for 50ms to let the network drain.
+          // This prevents RAM crashes and freezing on 100MB+ files.
+          const dc = connectionRef.current?.dataChannel;
+          if (dc) {
+            let stuckGuard = 0;
+            while (dc.bufferedAmount > 4 * 1024 * 1024) {
+              await new Promise(r => setTimeout(r, 50));
+              stuckGuard++;
+              // If we are stuck waiting for over 15 seconds, break the loop to prevent permanent app freeze
+              if (stuckGuard > 300 || !connectionRef.current.open) break; 
+            }
+          }
+
           const chunk = file.slice(offset, offset + CHUNK_SIZE);
           const buffer = await chunk.arrayBuffer();
 
@@ -184,22 +222,14 @@ export default function NoLoginTransfer() {
           });
 
           offset += CHUNK_SIZE;
-          chunkCount++;
 
-          // 🛠️ FIX 1: Safe Progress Updates. Only update React every 5% to prevent freezing the UI.
+          // Safe Progress UI updates (only every 5% so React doesn't freeze)
           const currentProgress = Math.min(100, Math.round((offset / file.size) * 100));
           if (currentProgress >= lastReportedProgress + 5 || offset >= file.size) {
             lastReportedProgress = currentProgress;
             setFiles(prev => prev.map((f, idx) => 
               idx === index ? { ...f, progress: currentProgress } : f
             ));
-          }
-
-          // 🛠️ FIX 2: The Safe Breather. Completely bypasses the buggy bufferedAmount check.
-          // We force the JS thread to pause for 2ms every ~1MB of data sent. 
-          // This gives the browser network enough time to actually transmit the chunks without crashing.
-          if (chunkCount % 16 === 0) {
-            await new Promise(r => setTimeout(r, 2));
           }
         }
 
@@ -208,13 +238,11 @@ export default function NoLoginTransfer() {
           fileName: file.name
         });
 
-        // 🛠️ FIX 3: Add a tiny buffer between files so the receiver doesn't get overwhelmed
         setTimeout(() => resolve(), 50);
 
       } catch (error) {
         console.error("Transfer failed:", error);
-        // Resolve anyway so the whole app doesn't permanently freeze on a single error
-        resolve();
+        resolve(); // Resolve to prevent breaking batch jobs
       }
     });
   };
