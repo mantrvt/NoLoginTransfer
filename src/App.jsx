@@ -326,7 +326,8 @@ export default function NoLoginTransfer() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-6 font-sans"
+      // 🛠️ FIX: Added overflow-x-hidden to completely stop horizontal scrolling
+      className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-6 font-sans"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -357,26 +358,28 @@ export default function NoLoginTransfer() {
 
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8 md:mb-12 slide-in mt-4 md:mt-0">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 pb-2 gradient-text tracking-tight">NoLoginTransfer</h1>
+          {/* 🛠️ FIX: Scaled down text size slightly for very narrow phones */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 pb-2 gradient-text tracking-tight">NoLoginTransfer</h1>
           <p className="text-slate-400 text-base md:text-lg">Share files with anyone, instantly.</p>
         </div>
 
         <div className={`mb-6 md:mb-8 p-4 rounded-xl border-2 slide-in ${ connected ? 'bg-emerald-500/10 border-emerald-500/50 glow-green' : 'bg-slate-800/50 border-slate-700' }`}>
           <div className="flex items-center gap-3">
             {connected ? <Wifi className="text-emerald-400" size={24} /> : <WifiOff className="text-slate-400" size={24} />}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="font-semibold text-xs md:text-sm uppercase tracking-wide text-slate-300">Status</p>
-              <p className={`text-base md:text-lg ${connected ? 'text-emerald-400' : 'text-slate-400'}`}>{status}</p>
+              <p className={`text-base md:text-lg truncate ${connected ? 'text-emerald-400' : 'text-slate-400'}`}>{status}</p>
             </div>
           </div>
         </div>
 
-        {/* 🛠️ RESPONSIVE FIX: Input containers now use flex-1 min-w-0 to prevent pushing buttons off screen */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="slide-in">
+          {/* 🛠️ FIX: Added min-w-0 to grid children to prevent them from expanding beyond screen width */}
+          <div className="slide-in min-w-0">
             <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Your Room Code</label>
-            <div className="flex gap-2 mb-3">
-              <input type="text" value={roomCode} readOnly className="flex-1 min-w-0 px-2 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors" placeholder="------" />
+            <div className="flex w-full gap-2 mb-3">
+              {/* 🛠️ FIX: Input is flex-1 w-full min-w-0 to firmly respect constraints */}
+              <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-3 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors" placeholder="------" />
               <button onClick={copyToClipboard} disabled={!roomCode} className="px-4 md:px-6 py-3 md:py-4 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all flex items-center justify-center shrink-0 glow"><Copy size={18} /></button>
             </div>
             <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full px-4 py-3 md:py-2 bg-slate-800/50 hover:bg-slate-700 disabled:bg-slate-800/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm border border-slate-700">
@@ -390,10 +393,10 @@ export default function NoLoginTransfer() {
             <p className="text-xs text-slate-500 mt-3 text-center md:text-left">💡 Share this code with anyone to connect</p>
           </div>
 
-          <div className="slide-in" style={{animationDelay: '0.1s'}}>
+          <div className="slide-in min-w-0" style={{animationDelay: '0.1s'}}>
             <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Join a Room</label>
-            <div className="flex gap-2 mb-3">
-              <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 min-w-0 px-2 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50" />
+            <div className="flex w-full gap-2 mb-3">
+              <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 w-full min-w-0 px-3 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50" />
               <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="px-5 md:px-6 py-3 md:py-4 bg-violet-500 hover:bg-violet-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all shrink-0">
                 {connected ? 'Connected' : 'Join'}
               </button>
@@ -484,9 +487,8 @@ export default function NoLoginTransfer() {
           </div>
         )}
 
-        {/* 🛠️ RESPONSIVE FIX: grid-cols-1 on mobile, md:grid-cols-2 on desktop. Icons stay at the top using items-start. */}
         <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in" style={{animationDelay: '0.3s'}}>
+          <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in min-w-0" style={{animationDelay: '0.3s'}}>
             <h3 className="text-lg font-bold mb-4 text-slate-300">How it works</h3>
             <div className="space-y-3 text-sm text-slate-400">
               <p>• Files transfer directly between devices</p>
@@ -495,7 +497,7 @@ export default function NoLoginTransfer() {
               <p>• Simple 6-digit room codes</p>
             </div>
           </div>
-          <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in" style={{animationDelay: '0.4s'}}>
+          <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in min-w-0" style={{animationDelay: '0.4s'}}>
             <h3 className="text-lg font-bold mb-4 text-slate-300">Features</h3>
             <div className="space-y-3 text-sm text-slate-400">
               <div className="flex items-start gap-3"><Lock size={18} className="text-blue-400 shrink-0 mt-0.5" /> <span>WebRTC DTLS Transport Security</span></div>
@@ -509,10 +511,10 @@ export default function NoLoginTransfer() {
         </div>
 
       </div>
-
-      {/* Speed Insights */}
+      
+      {/* Vercel Speed Insights */}
       <SpeedInsights />
-
+      
     </div>
   );
 }
