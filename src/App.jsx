@@ -21,7 +21,7 @@ export default function NoLoginTransfer() {
   const connectionRef = useRef(null);
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0);
-  const pingIntervalRef = useRef(null); // 🛠️ NEW: Ref to hold our Heartbeat timer
+  const pingIntervalRef = useRef(null);
   
   // Ref to store incoming file chunks for massive files
   const incomingFilesRef = useRef({});
@@ -31,11 +31,9 @@ export default function NoLoginTransfer() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  // 🛠️ NEW: Function to start the invisible heartbeat
   const startHeartbeat = (conn) => {
     if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
     pingIntervalRef.current = setInterval(() => {
-      // Send a tiny empty ping every 10 seconds so the router never drops the connection
       if (conn.open) {
         conn.send({ type: 'ping' });
       }
@@ -67,7 +65,7 @@ export default function NoLoginTransfer() {
         conn.on('open', () => {
           setConnected(true);
           setStatus('Connected!');
-          startHeartbeat(conn); // Start heartbeat when someone joins
+          startHeartbeat(conn);
         });
         
         conn.on('data', handleIncomingData);
@@ -113,7 +111,7 @@ export default function NoLoginTransfer() {
       connectionRef.current = conn;
       setConnected(true);
       setStatus('Connected!');
-      startHeartbeat(conn); // Start heartbeat when we join
+      startHeartbeat(conn);
     });
 
     conn.on('data', handleIncomingData);
@@ -134,7 +132,6 @@ export default function NoLoginTransfer() {
    * 📥 RECEIVER LOGIC
    */
   const handleIncomingData = async (data) => {
-    // 🛠️ NEW: Silently ignore heartbeat pings
     if (data.type === 'ping') return; 
 
     if (data.type === 'file-start') {
@@ -177,13 +174,15 @@ export default function NoLoginTransfer() {
   };
 
   /**
-   * 📤 SENDER LOGIC (Adaptive Throttling for Massive Files)
+   * 📤 SENDER LOGIC (High-Speed Engine)
    */
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
       try {
         const file = fileObj.file;
-        const CHUNK_SIZE = 64 * 1024;
+        
+        // 🚀 FIX 1: 4x Larger Chunks (256KB). Blazing fast throughput, fewer network requests.
+        const CHUNK_SIZE = 256 * 1024;
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
         
         connectionRef.current.send({
@@ -195,21 +194,19 @@ export default function NoLoginTransfer() {
         });
 
         let offset = 0;
+        let chunkCount = 0;
         let lastReportedProgress = 0;
 
         while (offset < file.size) {
-          // 🛠️ FIX: Dynamic Adaptive Pacing
-          // If the browser has more than 4MB queued up, pause JS for 50ms to let the network drain.
-          // This prevents RAM crashes and freezing on 100MB+ files.
           const dc = connectionRef.current?.dataChannel;
-          if (dc) {
-            let stuckGuard = 0;
-            while (dc.bufferedAmount > 4 * 1024 * 1024) {
-              await new Promise(r => setTimeout(r, 50));
-              stuckGuard++;
-              // If we are stuck waiting for over 15 seconds, break the loop to prevent permanent app freeze
-              if (stuckGuard > 300 || !connectionRef.current.open) break; 
-            }
+          
+          // 🚀 FIX 2: High-Speed Pacing
+          // Only hit the brakes if the browser is severely overloaded (8MB+ queue)
+          if (dc && dc.bufferedAmount > 8 * 1024 * 1024) {
+            await new Promise(r => setTimeout(r, 10)); 
+          } else if (chunkCount % 10 === 0) {
+            // Otherwise, do a zero-delay micro-yield to keep the network streaming instantly
+            await new Promise(r => setTimeout(r, 0));
           }
 
           const chunk = file.slice(offset, offset + CHUNK_SIZE);
@@ -222,8 +219,8 @@ export default function NoLoginTransfer() {
           });
 
           offset += CHUNK_SIZE;
+          chunkCount++;
 
-          // Safe Progress UI updates (only every 5% so React doesn't freeze)
           const currentProgress = Math.min(100, Math.round((offset / file.size) * 100));
           if (currentProgress >= lastReportedProgress + 5 || offset >= file.size) {
             lastReportedProgress = currentProgress;
@@ -238,11 +235,11 @@ export default function NoLoginTransfer() {
           fileName: file.name
         });
 
-        setTimeout(() => resolve(), 50);
+        setTimeout(() => resolve(), 20);
 
       } catch (error) {
         console.error("Transfer failed:", error);
-        resolve(); // Resolve to prevent breaking batch jobs
+        resolve();
       }
     });
   };
