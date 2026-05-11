@@ -371,6 +371,7 @@ export default function NoLoginTransfer() {
           </div>
         </div>
 
+        {/* 🛠️ RESPONSIVE FIX: Input containers now use flex-1 min-w-0 to prevent pushing buttons off screen */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="slide-in">
             <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Your Room Code</label>
@@ -483,6 +484,7 @@ export default function NoLoginTransfer() {
           </div>
         )}
 
+        {/* 🛠️ RESPONSIVE FIX: grid-cols-1 on mobile, md:grid-cols-2 on desktop. Icons stay at the top using items-start. */}
         <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in" style={{animationDelay: '0.3s'}}>
             <h3 className="text-lg font-bold mb-4 text-slate-300">How it works</h3>
@@ -507,10 +509,10 @@ export default function NoLoginTransfer() {
         </div>
 
       </div>
-      
-      {/* Vercel Speed Insights */}
+
+      {/* Speed Insights */}
       <SpeedInsights />
-      
+
     </div>
   );
 }
