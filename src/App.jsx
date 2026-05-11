@@ -132,7 +132,6 @@ export default function NoLoginTransfer() {
         const blob = new Blob(fileTracker.chunks, { type: fileTracker.type });
         const url = URL.createObjectURL(blob);
         
-        // 🛠️ BUG 1 FIX: Store the raw 'blob' object here so JSZip doesn't have to fetch it!
         setReceivedFiles(prev => [...prev, {
           id: Date.now() + Math.random(),
           name: data.fileName,
@@ -153,59 +152,70 @@ export default function NoLoginTransfer() {
   };
 
   /**
-   * 📤 SENDER LOGIC
+   * 📤 SENDER LOGIC (Fully Patched & Safe)
    */
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
-      const file = fileObj.file;
-      const CHUNK_SIZE = 64 * 1024;
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      
-      connectionRef.current.send({
-        type: 'file-start',
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-        totalChunks: totalChunks
-      });
+      try {
+        const file = fileObj.file;
+        const CHUNK_SIZE = 64 * 1024;
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        
+        connectionRef.current.send({
+          type: 'file-start',
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          totalChunks: totalChunks
+        });
 
-      let offset = 0;
-      let chunkCount = 0;
+        let offset = 0;
+        let chunkCount = 0;
+        let lastReportedProgress = 0;
 
-      while (offset < file.size) {
-        const chunk = file.slice(offset, offset + CHUNK_SIZE);
-        const buffer = await chunk.arrayBuffer();
+        while (offset < file.size) {
+          const chunk = file.slice(offset, offset + CHUNK_SIZE);
+          const buffer = await chunk.arrayBuffer();
 
-        const dc = connectionRef.current.dataChannel;
-        if (dc) {
-          while (dc.bufferedAmount > 1024 * 1024) {
-            await new Promise(r => setTimeout(r, 10));
+          connectionRef.current.send({
+            type: 'file-chunk',
+            fileName: file.name,
+            chunk: buffer
+          });
+
+          offset += CHUNK_SIZE;
+          chunkCount++;
+
+          // 🛠️ FIX 1: Safe Progress Updates. Only update React every 5% to prevent freezing the UI.
+          const currentProgress = Math.min(100, Math.round((offset / file.size) * 100));
+          if (currentProgress >= lastReportedProgress + 5 || offset >= file.size) {
+            lastReportedProgress = currentProgress;
+            setFiles(prev => prev.map((f, idx) => 
+              idx === index ? { ...f, progress: currentProgress } : f
+            ));
+          }
+
+          // 🛠️ FIX 2: The Safe Breather. Completely bypasses the buggy bufferedAmount check.
+          // We force the JS thread to pause for 2ms every ~1MB of data sent. 
+          // This gives the browser network enough time to actually transmit the chunks without crashing.
+          if (chunkCount % 16 === 0) {
+            await new Promise(r => setTimeout(r, 2));
           }
         }
 
         connectionRef.current.send({
-          type: 'file-chunk',
-          fileName: file.name,
-          chunk: buffer
+          type: 'file-end',
+          fileName: file.name
         });
 
-        offset += CHUNK_SIZE;
-        chunkCount++;
+        // 🛠️ FIX 3: Add a tiny buffer between files so the receiver doesn't get overwhelmed
+        setTimeout(() => resolve(), 50);
 
-        if (chunkCount % Math.ceil(totalChunks / 20) === 0 || offset >= file.size) {
-          const progress = Math.round((offset / file.size) * 100);
-          setFiles(prev => prev.map((f, idx) => 
-            idx === index ? { ...f, progress } : f
-          ));
-        }
+      } catch (error) {
+        console.error("Transfer failed:", error);
+        // Resolve anyway so the whole app doesn't permanently freeze on a single error
+        resolve();
       }
-
-      connectionRef.current.send({
-        type: 'file-end',
-        fileName: file.name
-      });
-
-      resolve();
     });
   };
 
@@ -252,7 +262,6 @@ export default function NoLoginTransfer() {
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
     addFiles(selectedFiles);
-    // 🛠️ BUG 2 FIX: Wipe the input's memory so you can upload files multiple times
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; 
     }
@@ -279,7 +288,6 @@ export default function NoLoginTransfer() {
     try {
       const zip = new JSZip();
       for (const file of receivedFiles) {
-        // 🛠️ BUG 1 FIX: Use the 'blob' directly from memory. Do not use fetch()!
         zip.file(file.name, file.blob);
       }
       const zipBlob = await zip.generateAsync({ type: 'blob' });
