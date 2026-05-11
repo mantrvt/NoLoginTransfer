@@ -132,11 +132,13 @@ export default function NoLoginTransfer() {
         const blob = new Blob(fileTracker.chunks, { type: fileTracker.type });
         const url = URL.createObjectURL(blob);
         
+        // 🛠️ BUG 1 FIX: Store the raw 'blob' object here so JSZip doesn't have to fetch it!
         setReceivedFiles(prev => [...prev, {
           id: Date.now() + Math.random(),
           name: data.fileName,
           size: fileTracker.size,
           url: url,
+          blob: blob, 
           type: fileTracker.type
         }]);
         
@@ -250,6 +252,10 @@ export default function NoLoginTransfer() {
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
     addFiles(selectedFiles);
+    // 🛠️ BUG 2 FIX: Wipe the input's memory so you can upload files multiple times
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; 
+    }
   };
 
   const removeFile = (fileId) => {
@@ -273,9 +279,8 @@ export default function NoLoginTransfer() {
     try {
       const zip = new JSZip();
       for (const file of receivedFiles) {
-        const response = await fetch(file.url);
-        const blob = await response.blob();
-        zip.file(file.name, blob);
+        // 🛠️ BUG 1 FIX: Use the 'blob' directly from memory. Do not use fetch()!
+        zip.file(file.name, file.blob);
       }
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(zipBlob);
@@ -288,6 +293,7 @@ export default function NoLoginTransfer() {
       URL.revokeObjectURL(url);
       setStatus('Downloaded!');
     } catch (error) {
+      console.error('ZIP Error:', error);
       setStatus('Download failed');
     } finally {
       setDownloadingAll(false);
@@ -326,7 +332,6 @@ export default function NoLoginTransfer() {
 
   return (
     <div 
-      // 🛠️ FIX: Added overflow-x-hidden to completely stop horizontal scrolling
       className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-6 font-sans"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -358,7 +363,6 @@ export default function NoLoginTransfer() {
 
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8 md:mb-12 slide-in mt-4 md:mt-0">
-          {/* 🛠️ FIX: Scaled down text size slightly for very narrow phones */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 pb-2 gradient-text tracking-tight">NoLoginTransfer</h1>
           <p className="text-slate-400 text-base md:text-lg">Share files with anyone, instantly.</p>
         </div>
@@ -374,11 +378,9 @@ export default function NoLoginTransfer() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* 🛠️ FIX: Added min-w-0 to grid children to prevent them from expanding beyond screen width */}
           <div className="slide-in min-w-0">
             <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Your Room Code</label>
             <div className="flex w-full gap-2 mb-3">
-              {/* 🛠️ FIX: Input is flex-1 w-full min-w-0 to firmly respect constraints */}
               <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-3 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors" placeholder="------" />
               <button onClick={copyToClipboard} disabled={!roomCode} className="px-4 md:px-6 py-3 md:py-4 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all flex items-center justify-center shrink-0 glow"><Copy size={18} /></button>
             </div>
