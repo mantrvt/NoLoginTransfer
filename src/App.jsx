@@ -108,10 +108,9 @@ export default function NoLoginTransfer() {
   };
 
   /**
-   * 📥 RECEIVER LOGIC (Now handles stitched chunks)
+   * 📥 RECEIVER LOGIC
    */
   const handleIncomingData = async (data) => {
-    // 1. File starting metadata
     if (data.type === 'file-start') {
       incomingFilesRef.current[data.fileName] = {
         chunks: [],
@@ -120,20 +119,15 @@ export default function NoLoginTransfer() {
         receivedBytes: 0
       };
       setStatus(`Receiving: ${data.fileName}...`);
-    } 
-    // 2. Incoming file chunks
-    else if (data.type === 'file-chunk') {
+    } else if (data.type === 'file-chunk') {
       const fileTracker = incomingFilesRef.current[data.fileName];
       if (fileTracker) {
         fileTracker.chunks.push(data.chunk);
         fileTracker.receivedBytes += data.chunk.byteLength;
       }
-    } 
-    // 3. File completed
-    else if (data.type === 'file-end') {
+    } else if (data.type === 'file-end') {
       const fileTracker = incomingFilesRef.current[data.fileName];
       if (fileTracker) {
-        // Stitch all chunks together into a single Blob
         const blob = new Blob(fileTracker.chunks, { type: fileTracker.type });
         const url = URL.createObjectURL(blob);
         
@@ -145,29 +139,25 @@ export default function NoLoginTransfer() {
           type: fileTracker.type
         }]);
         
-        // Clear memory
         delete incomingFilesRef.current[data.fileName];
         setStatus(`✅ Got: ${data.fileName}`);
       }
-    }
-    else if (data.type === 'batch-start') {
+    } else if (data.type === 'batch-start') {
       setStatus(`Receiving ${data.fileCount} file(s)...`);
-    } 
-    else if (data.type === 'batch-complete') {
+    } else if (data.type === 'batch-complete') {
       setStatus('All files received!');
     }
   };
 
   /**
-   * 📤 SENDER LOGIC (Now slices massive files)
+   * 📤 SENDER LOGIC
    */
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
       const file = fileObj.file;
-      const CHUNK_SIZE = 64 * 1024; // Slice into 64KB chunks
+      const CHUNK_SIZE = 64 * 1024;
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       
-      // 1. Tell the receiver a file is coming
       connectionRef.current.send({
         type: 'file-start',
         fileName: file.name,
@@ -179,21 +169,17 @@ export default function NoLoginTransfer() {
       let offset = 0;
       let chunkCount = 0;
 
-      // 2. Read and send the file slice by slice
       while (offset < file.size) {
         const chunk = file.slice(offset, offset + CHUNK_SIZE);
         const buffer = await chunk.arrayBuffer();
 
-        // 🛑 BACKPRESSURE LOGIC: Wait if the WebRTC buffer is getting full
         const dc = connectionRef.current.dataChannel;
         if (dc) {
-          // If buffer holds more than 1MB, pause for 10ms to let it drain
           while (dc.bufferedAmount > 1024 * 1024) {
             await new Promise(r => setTimeout(r, 10));
           }
         }
 
-        // Send the tiny chunk
         connectionRef.current.send({
           type: 'file-chunk',
           fileName: file.name,
@@ -203,7 +189,6 @@ export default function NoLoginTransfer() {
         offset += CHUNK_SIZE;
         chunkCount++;
 
-        // Update UI progress every 5% so React doesn't lag the browser
         if (chunkCount % Math.ceil(totalChunks / 20) === 0 || offset >= file.size) {
           const progress = Math.round((offset / file.size) * 100);
           setFiles(prev => prev.map((f, idx) => 
@@ -212,7 +197,6 @@ export default function NoLoginTransfer() {
         }
       }
 
-      // 3. Tell receiver the file is fully sent
       connectionRef.current.send({
         type: 'file-end',
         fileName: file.name
@@ -241,7 +225,6 @@ export default function NoLoginTransfer() {
     setWarning('');
   };
 
-  // Add files to queue
   const addFiles = (newFiles) => {
     const ONE_HUNDRED_MB = 100 * 1024 * 1024;
     const hasLargeFile = newFiles.some(file => file.size > ONE_HUNDRED_MB);
@@ -276,30 +259,11 @@ export default function NoLoginTransfer() {
     });
   };
 
-  // Drag & Drop
-  const handleDragEnter = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    dragCounterRef.current++;
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    dragCounterRef.current--;
-    if (dragCounterRef.current === 0) setIsDragging(false);
-  };
-
+  const handleDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); dragCounterRef.current++; if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); dragCounterRef.current--; if (dragCounterRef.current === 0) setIsDragging(false); };
   const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDrop = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); dragCounterRef.current = 0; const droppedFiles = Array.from(e.dataTransfer.files); if (droppedFiles.length > 0) addFiles(droppedFiles); };
 
-  const handleDrop = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    setIsDragging(false);
-    dragCounterRef.current = 0;
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    if (droppedFiles.length > 0) addFiles(droppedFiles);
-  };
-
-  // Download ZIP
   const downloadAllAsZip = async () => {
     if (receivedFiles.length === 0) return;
     setDownloadingAll(true);
@@ -361,7 +325,7 @@ export default function NoLoginTransfer() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 font-sans"
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-6 font-sans"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -391,86 +355,88 @@ export default function NoLoginTransfer() {
       )}
 
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12 slide-in">
-          <h1 className="text-5xl font-bold mb-3 pb-2 gradient-text tracking-tight">NoLoginTransfer</h1>
-          <p className="text-slate-400 text-lg">Share files with anyone, instantly.</p>
+        <div className="text-center mb-8 md:mb-12 slide-in mt-4 md:mt-0">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 pb-2 gradient-text tracking-tight">NoLoginTransfer</h1>
+          <p className="text-slate-400 text-base md:text-lg">Share files with anyone, instantly.</p>
         </div>
 
-        <div className={`mb-8 p-4 rounded-xl border-2 slide-in ${ connected ? 'bg-emerald-500/10 border-emerald-500/50 glow-green' : 'bg-slate-800/50 border-slate-700' }`}>
+        <div className={`mb-6 md:mb-8 p-4 rounded-xl border-2 slide-in ${ connected ? 'bg-emerald-500/10 border-emerald-500/50 glow-green' : 'bg-slate-800/50 border-slate-700' }`}>
           <div className="flex items-center gap-3">
             {connected ? <Wifi className="text-emerald-400" size={24} /> : <WifiOff className="text-slate-400" size={24} />}
             <div className="flex-1">
-              <p className="font-semibold text-sm uppercase tracking-wide text-slate-300">Status</p>
-              <p className={`text-lg ${connected ? 'text-emerald-400' : 'text-slate-400'}`}>{status}</p>
+              <p className="font-semibold text-xs md:text-sm uppercase tracking-wide text-slate-300">Status</p>
+              <p className={`text-base md:text-lg ${connected ? 'text-emerald-400' : 'text-slate-400'}`}>{status}</p>
             </div>
           </div>
         </div>
 
+        {/* 🛠️ RESPONSIVE FIX: Input containers now use flex-1 min-w-0 to prevent pushing buttons off screen */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="slide-in">
             <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Your Room Code</label>
             <div className="flex gap-2 mb-3">
-              <input type="text" value={roomCode} readOnly className="flex-1 px-4 py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors" placeholder="------" />
-              <button onClick={copyToClipboard} disabled={!roomCode} className="px-6 py-3 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all flex items-center gap-2 glow"><Copy size={18} /></button>
+              <input type="text" value={roomCode} readOnly className="flex-1 min-w-0 px-2 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors" placeholder="------" />
+              <button onClick={copyToClipboard} disabled={!roomCode} className="px-4 md:px-6 py-3 md:py-4 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all flex items-center justify-center shrink-0 glow"><Copy size={18} /></button>
             </div>
-            <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full px-4 py-2 bg-slate-800/50 hover:bg-slate-700 disabled:bg-slate-800/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm border border-slate-700">
+            <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full px-4 py-3 md:py-2 bg-slate-800/50 hover:bg-slate-700 disabled:bg-slate-800/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm border border-slate-700">
               <QrCode size={16} />{showQR ? 'Hide' : 'Show'} QR Code
             </button>
             {showQR && roomCode && (
               <div className="mt-4 p-4 bg-white rounded-xl flex justify-center">
-                <QRCodeSVG value={connectionUrl} size={200} level="H" includeMargin={true} />
+                <QRCodeSVG value={connectionUrl} size={180} level="H" includeMargin={true} />
               </div>
             )}
-            <p className="text-xs text-slate-500 mt-3">💡 Share this code with anyone to connect</p>
+            <p className="text-xs text-slate-500 mt-3 text-center md:text-left">💡 Share this code with anyone to connect</p>
           </div>
 
           <div className="slide-in" style={{animationDelay: '0.1s'}}>
             <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Join a Room</label>
             <div className="flex gap-2 mb-3">
-              <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 px-4 py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50" />
-              <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="px-6 py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all">
+              <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 min-w-0 px-2 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50" />
+              <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="px-5 md:px-6 py-3 md:py-4 bg-violet-500 hover:bg-violet-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all shrink-0">
                 {connected ? 'Connected' : 'Join'}
               </button>
             </div>
-            <p className="text-xs text-slate-500">💡 Or scan their QR code with your phone</p>
+            <p className="text-xs text-slate-500 text-center md:text-left">💡 Or scan their QR code with your phone</p>
           </div>
         </div>
 
         {connected && (
           <div className="space-y-6 slide-in" style={{animationDelay: '0.2s'}}>
-            <div className="p-6 bg-slate-800/50 rounded-xl border-2 border-slate-700">
+            <div className="p-4 md:p-6 bg-slate-800/50 rounded-xl border-2 border-slate-700">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Upload size={24} className="text-sky-400" />Send Files</h3>
               
               <div className="space-y-4">
                 <div>
                   <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} className="hidden" />
-                  <button onClick={() => fileInputRef.current.click()} className="w-full px-6 py-4 border-2 border-dashed border-slate-600 hover:border-sky-500 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-sky-400">
-                    <Upload size={20} />Choose Files or Drag & Drop
+                  <button onClick={() => fileInputRef.current.click()} className="w-full px-4 md:px-6 py-6 md:py-4 border-2 border-dashed border-slate-600 hover:border-sky-500 rounded-xl font-semibold transition-all flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-slate-400 hover:text-sky-400 text-sm md:text-base">
+                    <Upload size={24} className="mb-1 md:mb-0" />
+                    <span>Choose Files or Drag & Drop</span>
                   </button>
                 </div>
 
                 {warning && (
-                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-3 text-amber-300 text-sm animate-pulse">
-                    <AlertTriangle size={18} className="shrink-0" />
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3 text-amber-300 text-sm animate-pulse">
+                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
                     <p>{warning}</p>
                   </div>
                 )}
 
                 {files.length > 0 && (
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                     {files.map((fileObj) => (
                       <div key={fileObj.id} className="p-3 bg-slate-900/50 rounded-lg flex items-center gap-3">
-                        {getFileIcon(fileObj.type)}
+                        <div className="shrink-0">{getFileIcon(fileObj.type)}</div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-slate-300 truncate">{fileObj.name}</p>
                           <p className="text-xs text-slate-500">{formatFileSize(fileObj.size)}</p>
                           {fileObj.progress > 0 && (
-                            <div className="mt-1 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div className="mt-1 w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-sky-500 to-violet-500 transition-all duration-300" style={{ width: `${fileObj.progress}%` }} />
                             </div>
                           )}
                         </div>
-                        <button onClick={() => removeFile(fileObj.id)} className="p-2 hover:bg-slate-800 rounded-lg transition-colors"><X size={16} className="text-slate-500" /></button>
+                        <button onClick={() => removeFile(fileObj.id)} className="p-2 hover:bg-slate-800 rounded-lg transition-colors shrink-0"><X size={16} className="text-slate-500" /></button>
                       </div>
                     ))}
                   </div>
@@ -479,7 +445,7 @@ export default function NoLoginTransfer() {
                 <button 
                   onClick={sendFiles} 
                   disabled={files.length === 0} 
-                  className="w-full px-6 py-3 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed rounded-xl font-bold transition-all glow flex items-center justify-center gap-2"
+                  className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed rounded-xl font-bold transition-all glow flex items-center justify-center gap-2 text-lg md:text-base"
                 >
                   <Upload size={20} className={files.length === 0 ? "opacity-50" : ""} />
                   Send {files.length > 0 ? `${files.length} File(s)` : 'Files'}
@@ -488,25 +454,25 @@ export default function NoLoginTransfer() {
             </div>
 
             {receivedFiles.length > 0 && (
-              <div className="p-6 bg-gradient-to-br from-emerald-900/20 to-emerald-800/20 rounded-xl border-2 border-emerald-500/50 glow-green">
-                <div className="flex items-center justify-between mb-4">
+              <div className="p-4 md:p-6 bg-gradient-to-br from-emerald-900/20 to-emerald-800/20 rounded-xl border-2 border-emerald-500/50 glow-green">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
                   <h3 className="text-xl font-bold flex items-center gap-2">
                     <Download size={24} className="text-emerald-400" />Received ({receivedFiles.length})
                   </h3>
-                  <button onClick={downloadAllAsZip} disabled={downloadingAll} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-700 disabled:cursor-not-allowed rounded-lg font-semibold text-sm transition-all flex items-center gap-2">
+                  <button onClick={downloadAllAsZip} disabled={downloadingAll} className="w-full md:w-auto px-4 py-3 md:py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-700 disabled:cursor-not-allowed rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2">
                     <PackageOpen size={16} />{downloadingAll ? 'Packing...' : 'Download All'}
                   </button>
                 </div>
                 
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                   {receivedFiles.map((file) => (
                     <div key={file.id} className="p-3 bg-slate-900/50 rounded-lg flex items-center gap-3">
-                      {getFileIcon(file.type)}
+                      <div className="shrink-0">{getFileIcon(file.type)}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-300 truncate">{file.name}</p>
                         <p className="text-xs text-slate-500">{formatFileSize(file.size)}</p>
                       </div>
-                      <a href={file.url} download={file.name} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-lg font-semibold text-sm transition-all flex items-center gap-2">
+                      <a href={file.url} download={file.name} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 shrink-0">
                         <Download size={16} />Get
                       </a>
                     </div>
@@ -517,10 +483,11 @@ export default function NoLoginTransfer() {
           </div>
         )}
 
-        <div className="mt-12 grid grid-cols-2 gap-6">
+        {/* 🛠️ RESPONSIVE FIX: grid-cols-1 on mobile, md:grid-cols-2 on desktop. Icons stay at the top using items-start. */}
+        <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in" style={{animationDelay: '0.3s'}}>
-            <h3 className="text-lg font-bold mb-3 text-slate-300">How it works</h3>
-            <div className="space-y-2 text-sm text-slate-400">
+            <h3 className="text-lg font-bold mb-4 text-slate-300">How it works</h3>
+            <div className="space-y-3 text-sm text-slate-400">
               <p>• Files transfer directly between devices</p>
               <p>• Nothing is stored on any server</p>
               <p>• Works on any device with a browser</p>
@@ -528,14 +495,14 @@ export default function NoLoginTransfer() {
             </div>
           </div>
           <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in" style={{animationDelay: '0.4s'}}>
-            <h3 className="text-lg font-bold mb-3 text-slate-300">Features</h3>
-            <div className="space-y-2 text-sm text-slate-400">
-              <div className="flex items-center gap-2"><Lock size={16} className="text-blue-400" /> WebRTC DTLS Transport Security</div>
-              <div className="flex items-center gap-2"><FileArchive size={16} className="text-yellow-400" /> Chunking Engine for Large Files</div>
-              <div className="flex items-center gap-2"><Rotate3d size={16} className="text-red-400" /> Direct Peer-to-Peer Transfer</div>
-              <div className="flex items-center gap-2"><Download size={16} className="text-green-400" /> Download all files as ZIP</div>
-              <div className="flex items-center gap-2"><QrCode size={16} className="text-orange-400" /> Connect via QR Code</div>
-              <div className="flex items-center gap-2"><FishingHook size={16} className="text-purple-400" /> Drag & drop functionality</div>
+            <h3 className="text-lg font-bold mb-4 text-slate-300">Features</h3>
+            <div className="space-y-3 text-sm text-slate-400">
+              <div className="flex items-start gap-3"><Lock size={18} className="text-blue-400 shrink-0 mt-0.5" /> <span>WebRTC DTLS Transport Security</span></div>
+              <div className="flex items-start gap-3"><FileArchive size={18} className="text-yellow-400 shrink-0 mt-0.5" /> <span>Chunking Engine for Large Files</span></div>
+              <div className="flex items-start gap-3"><Rotate3d size={18} className="text-red-400 shrink-0 mt-0.5" /> <span>Direct Peer-to-Peer Transfer</span></div>
+              <div className="flex items-start gap-3"><Download size={18} className="text-green-400 shrink-0 mt-0.5" /> <span>Download all files as ZIP</span></div>
+              <div className="flex items-start gap-3"><QrCode size={18} className="text-orange-400 shrink-0 mt-0.5" /> <span>Connect via QR Code</span></div>
+              <div className="flex items-start gap-3"><FishingHook size={18} className="text-purple-400 shrink-0 mt-0.5" /> <span>Drag & drop functionality</span></div>
             </div>
           </div>
         </div>
