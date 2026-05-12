@@ -379,15 +379,27 @@ export default function NoLoginTransfer() {
       <div className="max-w-[1200px] mx-auto pt-[40px] md:pt-[64px] px-[16px] md:px-[32px]">
         
         <div className="text-center mb-[40px] md:mb-[64px] slide-in">
-          {/* 🎨 NEW: Replaced text with your custom logo image */}
+          
+          {/* 🎨 NEW: Added custom slow bounce keyframes and applied them to the larger image! */}
+          <style>{`
+            @keyframes slow-float {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-12px); }
+            }
+            .animate-slow-float {
+              animation: slow-float 4s ease-in-out infinite;
+            }
+          `}</style>
+          
           <h1 className="mb-[16px] md:mb-[24px]">
             <img 
               src={transfuhLogo} 
               alt="Transfuh" 
-              className="mx-auto h-[64px] md:h-[96px] object-contain drop-shadow-md" 
+              className="mx-auto h-[96px] md:h-[140px] object-contain drop-shadow-md animate-slow-float" 
             />
             <span className="sr-only">Transfuh</span>
           </h1>
+          
           <p className="font-heading-sec text-muted-sage text-[16px]">Share files with anyone, instantly.</p>
         </div>
 
