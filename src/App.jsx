@@ -23,10 +23,8 @@ export default function NoLoginTransfer() {
   const dragCounterRef = useRef(0);
   const pingIntervalRef = useRef(null);
   
-  // Ref to store incoming file chunks for massive files
   const incomingFilesRef = useRef({});
 
-  // Generate short 6-digit code
   const generateRoomCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
@@ -44,7 +42,6 @@ export default function NoLoginTransfer() {
     if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
   };
 
-  // Initialize PeerJS
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js';
@@ -97,7 +94,6 @@ export default function NoLoginTransfer() {
     };
   }, []);
 
-  // Connect to remote peer
   const connectToRoom = async () => {
     if (!remoteRoomCode || remoteRoomCode.length !== 6) {
       setStatus('Please enter a 6-digit room code');
@@ -128,9 +124,6 @@ export default function NoLoginTransfer() {
     });
   };
 
-  /**
-   * 📥 RECEIVER LOGIC
-   */
   const handleIncomingData = async (data) => {
     if (data.type === 'ping') return; 
 
@@ -173,15 +166,10 @@ export default function NoLoginTransfer() {
     }
   };
 
-  /**
-   * 📤 SENDER LOGIC (High-Speed Engine)
-   */
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
       try {
         const file = fileObj.file;
-        
-        // 🚀 FIX 1: 4x Larger Chunks (256KB). Blazing fast throughput, fewer network requests.
         const CHUNK_SIZE = 256 * 1024;
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
         
@@ -199,13 +187,9 @@ export default function NoLoginTransfer() {
 
         while (offset < file.size) {
           const dc = connectionRef.current?.dataChannel;
-          
-          // 🚀 FIX 2: High-Speed Pacing
-          // Only hit the brakes if the browser is severely overloaded (8MB+ queue)
           if (dc && dc.bufferedAmount > 8 * 1024 * 1024) {
             await new Promise(r => setTimeout(r, 10)); 
           } else if (chunkCount % 10 === 0) {
-            // Otherwise, do a zero-delay micro-yield to keep the network streaming instantly
             await new Promise(r => setTimeout(r, 0));
           }
 
@@ -340,10 +324,10 @@ export default function NoLoginTransfer() {
   };
 
   const getFileIcon = (type) => {
-    if (type.startsWith('image/')) return <Image size={20} className="text-blue-400" />;
-    if (type.startsWith('video/')) return <Video size={20} className="text-purple-400" />;
-    if (type.includes('pdf') || type.includes('document')) return <FileText size={20} className="text-red-400" />;
-    return <File size={20} className="text-slate-400" />;
+    if (type.startsWith('image/')) return <Image size={20} className="text-[#E48A00]" />;
+    if (type.startsWith('video/')) return <Video size={20} className="text-[#0038FF]" />;
+    if (type.includes('pdf') || type.includes('document')) return <FileText size={20} className="text-[#D13D1B]" />;
+    return <File size={20} className="text-[#967C29]" />;
   };
 
   const formatFileSize = (bytes) => {
@@ -365,191 +349,220 @@ export default function NoLoginTransfer() {
 
   return (
     <div 
-      className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 md:p-6 font-sans"
+      className="min-h-screen overflow-x-hidden bg-[#FDFBF4] text-[#333333] font-sans pb-16"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* 🎨 VACATION® DESIGN SYSTEM STYLES */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap');
-        body { font-family: 'Outfit', sans-serif; }
-        .mono { font-family: 'Space Mono', monospace; letter-spacing: 0.1em; }
-        .glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.3), 0 0 40px rgba(56, 189, 248, 0.1); }
-        .glow-green { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3), 0 0 40px rgba(34, 197, 94, 0.1); }
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Nunito+Sans:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Nunito Sans', sans-serif; background-color: #FDFBF4; }
+        .font-serif { font-family: 'EB Garamond', serif; }
+        
+        /* Buttons */
+        .btn-primary-dark { background: #333333; color: #FFFFFF; border-radius: 9999px; box-shadow: 0 1.5px 1.5px 0 rgba(0,0,0,0.75); transition: all 0.2s ease; border: none; }
+        .btn-primary-dark:hover:not(:disabled) { background: #1F1F1F; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.85); }
+        .btn-primary-dark:active:not(:disabled) { background: #1F1F1F; box-shadow: inset 0 1px 1px rgba(0,0,0,0.75); }
+        
+        .btn-primary-gold { background: #F1D27A; color: #333333; border-radius: 9999px; box-shadow: 0 1.5px 1.5px 0 rgba(0,0,0,0.75); transition: all 0.2s ease; border: none; }
+        .btn-primary-gold:hover:not(:disabled) { background: #E48A00; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.85); }
+        .btn-primary-gold:active:not(:disabled) { background: #D97C00; box-shadow: inset 0 1px 1px rgba(0,0,0,0.75); }
+        
+        .btn-ghost { background: transparent; color: #333333; transition: all 0.2s ease; border-bottom: 1px solid transparent; }
+        .btn-ghost:hover:not(:disabled) { color: #000000; border-bottom: 1px solid #333333; }
+        
+        /* Inputs */
+        .input-field { background: #FFFFFF; color: #333333; border-radius: 2px; border: 1px solid #333333; transition: all 0.2s ease; outline: none; }
+        .input-field:focus { border: 2px solid #0038FF; box-shadow: 0 0 0 4px rgba(0, 56, 255, 0.22); }
+        .input-field:disabled { background: #E5E7EB; border-color: #CDC9C1; color: #777; }
+        
+        /* Cards */
+        .card-elevated { background: #FFFFFF; border: 1px solid #E5E7EB; box-shadow: inset -2px -2px 0px 0px rgba(0,0,0,0.05); border-radius: 8px; }
+        .card-elevated:hover { box-shadow: inset -2px -2px 1px -1px rgba(0,0,0,0.1); }
+        
+        /* Animations */
         .slide-in { animation: slide-in 0.5s ease-out; }
         @keyframes slide-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .gradient-text { background: linear-gradient(135deg, #38bdf8, #818cf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .drag-overlay { position: fixed; inset: 0; background: rgba(56, 189, 248, 0.1); backdrop-filter: blur(8px); z-index: 50; display: flex; align-items: center; justify-content: center; border: 4px dashed #38bdf8; pointer-events: none; }
-        .drag-overlay-content { animation: float 2s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        
+        .drag-overlay { position: fixed; inset: 0; background: rgba(253, 251, 244, 0.85); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; border: 4px dashed #F1D27A; pointer-events: none; }
       `}</style>
 
       {isDragging && (
         <div className="drag-overlay">
-          <div className="drag-overlay-content text-center">
-            <Upload size={64} className="text-sky-400 mx-auto mb-4" />
-            <p className="text-2xl font-bold text-sky-400">Drop files here</p>
+          <div className="text-center">
+            <Upload size={64} className="text-[#967C29] mx-auto mb-4" />
+            <p className="text-3xl font-serif font-medium text-[#333333]">Drop to Upload</p>
           </div>
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8 md:mb-12 slide-in mt-4 md:mt-0">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 pb-2 gradient-text tracking-tight">NoLoginTransfer</h1>
-          <p className="text-slate-400 text-base md:text-lg">Share files with anyone, instantly.</p>
+      {/* Top spacing follows 8px grid (40px on mobile, 80px on desktop) */}
+      <div className="max-w-[1200px] mx-auto pt-[40px] md:pt-[80px] px-[16px] md:px-[32px]">
+        
+        <div className="text-center mb-[40px] md:mb-[64px] slide-in">
+          <h1 className="text-[40px] md:text-[48px] font-serif font-medium mb-[8px] text-[#1F1F1F] tracking-tight">NoLoginTransfer</h1>
+          <p className="text-[#333333] text-[16px] md:text-[18px]">Share files with anyone, instantly.</p>
         </div>
 
-        <div className={`mb-6 md:mb-8 p-4 rounded-xl border-2 slide-in ${ connected ? 'bg-emerald-500/10 border-emerald-500/50 glow-green' : 'bg-slate-800/50 border-slate-700' }`}>
-          <div className="flex items-center gap-3">
-            {connected ? <Wifi className="text-emerald-400" size={24} /> : <WifiOff className="text-slate-400" size={24} />}
+        {/* Layout Container */}
+        <div className="max-w-[800px] mx-auto">
+          
+          <div className="mb-[32px] p-[16px] card-elevated slide-in flex items-center gap-[12px]">
+            {connected ? <Wifi className="text-[#967C29]" size={24} /> : <WifiOff className="text-[#CDC9C1]" size={24} />}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-xs md:text-sm uppercase tracking-wide text-slate-300">Status</p>
-              <p className={`text-base md:text-lg truncate ${connected ? 'text-emerald-400' : 'text-slate-400'}`}>{status}</p>
+              <p className="font-bold text-[13px] uppercase tracking-wide text-[#333333]">Status</p>
+              {connected ? (
+                <p className="text-[22px] font-serif font-medium text-[#E48A00] truncate">Connected securely.</p>
+              ) : (
+                <p className="text-[16px] text-[#333333] truncate">{status}</p>
+              )}
             </div>
           </div>
-        </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="slide-in min-w-0">
-            <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Your Room Code</label>
-            <div className="flex w-full gap-2 mb-3">
-              <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-3 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors" placeholder="------" />
-              <button onClick={copyToClipboard} disabled={!roomCode} className="px-4 md:px-6 py-3 md:py-4 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all flex items-center justify-center shrink-0 glow"><Copy size={18} /></button>
-            </div>
-            <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full px-4 py-3 md:py-2 bg-slate-800/50 hover:bg-slate-700 disabled:bg-slate-800/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm border border-slate-700">
-              <QrCode size={16} />{showQR ? 'Hide' : 'Show'} QR Code
-            </button>
-            {showQR && roomCode && (
-              <div className="mt-4 p-4 bg-white rounded-xl flex justify-center">
-                <QRCodeSVG value={connectionUrl} size={180} level="H" includeMargin={true} />
+          <div className="grid md:grid-cols-2 gap-[32px] mb-[40px]">
+            <div className="slide-in min-w-0">
+              <label className="block text-[16px] font-serif font-medium mb-[8px] text-[#1F1F1F]">Your Room Code</label>
+              <div className="flex w-full gap-[8px] mb-[12px]">
+                <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-[16px] py-[12px] input-field text-[24px] font-serif text-center" placeholder="------" />
+                <button onClick={copyToClipboard} disabled={!roomCode} className="btn-primary-dark px-[20px] flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"><Copy size={18} /></button>
               </div>
-            )}
-            <p className="text-xs text-slate-500 mt-3 text-center md:text-left">💡 Share this code with anyone to connect</p>
-          </div>
-
-          <div className="slide-in min-w-0" style={{animationDelay: '0.1s'}}>
-            <label className="block text-sm font-semibold mb-2 text-slate-300 uppercase tracking-wide">Join a Room</label>
-            <div className="flex w-full gap-2 mb-3">
-              <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 w-full min-w-0 px-3 md:px-4 py-3 md:py-4 bg-slate-800/80 border-2 border-slate-700 rounded-xl mono text-xl md:text-2xl text-center focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50" />
-              <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="px-5 md:px-6 py-3 md:py-4 bg-violet-500 hover:bg-violet-600 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all shrink-0">
-                {connected ? 'Connected' : 'Join'}
+              <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full py-[8px] btn-ghost flex items-center justify-center gap-[8px] text-[16px] disabled:opacity-50">
+                <QrCode size={16} />{showQR ? 'Hide' : 'Show'} QR Code
               </button>
+              {showQR && roomCode && (
+                <div className="mt-[16px] p-[16px] bg-white border border-[#E5E7EB] rounded-[2px] flex justify-center shadow-sm">
+                  <QRCodeSVG value={connectionUrl} size={160} level="H" includeMargin={true} />
+                </div>
+              )}
+              <p className="text-[13px] text-[#333333] mt-[12px] text-center md:text-left">💡 Share this code to connect</p>
             </div>
-            <p className="text-xs text-slate-500 text-center md:text-left">💡 Or scan their QR code with your phone</p>
-          </div>
-        </div>
 
-        {connected && (
-          <div className="space-y-6 slide-in" style={{animationDelay: '0.2s'}}>
-            <div className="p-4 md:p-6 bg-slate-800/50 rounded-xl border-2 border-slate-700">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Upload size={24} className="text-sky-400" />Send Files</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} className="hidden" />
-                  <button onClick={() => fileInputRef.current.click()} className="w-full px-4 md:px-6 py-6 md:py-4 border-2 border-dashed border-slate-600 hover:border-sky-500 rounded-xl font-semibold transition-all flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-slate-400 hover:text-sky-400 text-sm md:text-base">
-                    <Upload size={24} className="mb-1 md:mb-0" />
-                    <span>Choose Files or Drag & Drop</span>
+            <div className="slide-in min-w-0" style={{animationDelay: '0.1s'}}>
+              <label className="block text-[16px] font-serif font-medium mb-[8px] text-[#1F1F1F]">Join a Room</label>
+              <div className="flex w-full gap-[8px] mb-[12px]">
+                <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 w-full min-w-0 px-[16px] py-[12px] input-field text-[24px] font-serif text-center disabled:opacity-50" />
+                <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="btn-primary-dark px-[24px] font-medium shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {connected ? 'Connected' : 'Join'}
+                </button>
+              </div>
+              <p className="text-[13px] text-[#333333] text-center md:text-left">💡 Or scan their QR code with your phone</p>
+            </div>
+          </div>
+
+          {connected && (
+            <div className="space-y-[32px] slide-in" style={{animationDelay: '0.2s'}}>
+              <div className="p-[20px] md:p-[32px] card-elevated">
+                <h3 className="text-[22px] font-serif font-medium mb-[20px] flex items-center gap-[8px] text-[#1F1F1F]">
+                  <Upload size={22} className="text-[#967C29]" /> Send Files
+                </h3>
+                
+                <div className="space-y-[20px]">
+                  <div>
+                    <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} className="hidden" />
+                    <button onClick={() => fileInputRef.current.click()} className="w-full px-[16px] py-[32px] border-[2px] border-dashed border-[#CDC9C1] hover:border-[#F1D27A] bg-[#FDFBF4] rounded-[2px] font-medium transition-all flex flex-col md:flex-row items-center justify-center gap-[12px] text-[#333333] hover:bg-white text-[16px]">
+                      <Upload size={24} className="text-[#967C29]" />
+                      <span>Choose Files or Drag & Drop</span>
+                    </button>
+                  </div>
+
+                  {warning && (
+                    <div className="p-[12px] bg-[#FFF8E6] border border-[#F1D27A] rounded-[2px] flex items-start gap-[12px] text-[#E48A00] text-[13px]">
+                      <AlertTriangle size={18} className="shrink-0 mt-[2px]" />
+                      <p>{warning}</p>
+                    </div>
+                  )}
+
+                  {files.length > 0 && (
+                    <div className="space-y-[8px] max-h-[240px] overflow-y-auto pr-[4px]">
+                      {files.map((fileObj) => (
+                        <div key={fileObj.id} className="p-[12px] bg-white border border-[#E5E7EB] rounded-[2px] flex items-center gap-[12px]">
+                          <div className="shrink-0">{getFileIcon(fileObj.type)}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[16px] font-medium text-[#333333] truncate">{fileObj.name}</p>
+                            <p className="text-[13px] text-[#777777]">{formatFileSize(fileObj.size)}</p>
+                            {fileObj.progress > 0 && (
+                              <div className="mt-[8px] w-full h-[4px] bg-[#E5E7EB] rounded-full overflow-hidden">
+                                <div className="h-full bg-[#0038FF] transition-all duration-300" style={{ width: `${fileObj.progress}%` }} />
+                              </div>
+                            )}
+                          </div>
+                          <button onClick={() => removeFile(fileObj.id)} className="p-[8px] hover:bg-[#FDFBF4] rounded-[2px] transition-colors shrink-0"><X size={16} className="text-[#333333]" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <button 
+                    onClick={sendFiles} 
+                    disabled={files.length === 0} 
+                    className="w-full py-[13px] btn-primary-gold flex items-center justify-center gap-[8px] text-[18px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Upload size={20} className={files.length === 0 ? "opacity-50" : ""} />
+                    Send {files.length > 0 ? `${files.length} File(s)` : 'Files'}
                   </button>
                 </div>
+              </div>
 
-                {warning && (
-                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3 text-amber-300 text-sm animate-pulse">
-                    <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                    <p>{warning}</p>
+              {receivedFiles.length > 0 && (
+                <div className="p-[20px] md:p-[32px] bg-white border border-[#E5E7EB] rounded-[8px] shadow-sm">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[20px]">
+                    <h3 className="text-[22px] font-serif font-medium flex items-center gap-[8px] text-[#1F1F1F]">
+                      <Download size={22} className="text-[#E48A00]" /> Received ({receivedFiles.length})
+                    </h3>
+                    <button onClick={downloadAllAsZip} disabled={downloadingAll} className="w-full md:w-auto px-[20px] py-[10px] btn-primary-dark text-[16px] flex items-center justify-center gap-[8px] disabled:opacity-50">
+                      <PackageOpen size={16} />{downloadingAll ? 'Packing...' : 'Download All'}
+                    </button>
                   </div>
-                )}
-
-                {files.length > 0 && (
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {files.map((fileObj) => (
-                      <div key={fileObj.id} className="p-3 bg-slate-900/50 rounded-lg flex items-center gap-3">
-                        <div className="shrink-0">{getFileIcon(fileObj.type)}</div>
+                  
+                  <div className="space-y-[8px] max-h-[240px] overflow-y-auto pr-[4px]">
+                    {receivedFiles.map((file) => (
+                      <div key={file.id} className="p-[12px] bg-[#FDFBF4] border border-[#E5E7EB] rounded-[2px] flex items-center gap-[12px]">
+                        <div className="shrink-0">{getFileIcon(file.type)}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-300 truncate">{fileObj.name}</p>
-                          <p className="text-xs text-slate-500">{formatFileSize(fileObj.size)}</p>
-                          {fileObj.progress > 0 && (
-                            <div className="mt-1 w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-sky-500 to-violet-500 transition-all duration-300" style={{ width: `${fileObj.progress}%` }} />
-                            </div>
-                          )}
+                          <p className="text-[16px] font-medium text-[#333333] truncate">{file.name}</p>
+                          <p className="text-[13px] text-[#777777]">{formatFileSize(file.size)}</p>
                         </div>
-                        <button onClick={() => removeFile(fileObj.id)} className="p-2 hover:bg-slate-800 rounded-lg transition-colors shrink-0"><X size={16} className="text-slate-500" /></button>
+                        <a href={file.url} download={file.name} className="px-[16px] py-[8px] border border-[#333333] rounded-[9999px] text-[13px] font-medium hover:bg-[#333333] hover:text-white transition-colors flex items-center gap-[6px] shrink-0">
+                          <Download size={14} /> Get
+                        </a>
                       </div>
                     ))}
                   </div>
-                )}
-                
-                <button 
-                  onClick={sendFiles} 
-                  disabled={files.length === 0} 
-                  className="w-full px-6 py-4 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed rounded-xl font-bold transition-all glow flex items-center justify-center gap-2 text-lg md:text-base"
-                >
-                  <Upload size={20} className={files.length === 0 ? "opacity-50" : ""} />
-                  Send {files.length > 0 ? `${files.length} File(s)` : 'Files'}
-                </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="mt-[40px] md:mt-[64px] grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[32px]">
+            <div className="p-[24px] card-elevated slide-in min-w-0" style={{animationDelay: '0.3s'}}>
+              <h3 className="text-[22px] font-serif font-medium mb-[16px] text-[#1F1F1F]">How it works</h3>
+              <div className="space-y-[12px] text-[16px] text-[#333333]">
+                <p>• Files transfer directly between devices</p>
+                <p>• Nothing is stored on any server</p>
+                <p>• Works on any device with a browser</p>
+                <p>• Simple 6-digit room codes</p>
               </div>
             </div>
-
-            {receivedFiles.length > 0 && (
-              <div className="p-4 md:p-6 bg-gradient-to-br from-emerald-900/20 to-emerald-800/20 rounded-xl border-2 border-emerald-500/50 glow-green">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <Download size={24} className="text-emerald-400" />Received ({receivedFiles.length})
-                  </h3>
-                  <button onClick={downloadAllAsZip} disabled={downloadingAll} className="w-full md:w-auto px-4 py-3 md:py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-700 disabled:cursor-not-allowed rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2">
-                    <PackageOpen size={16} />{downloadingAll ? 'Packing...' : 'Download All'}
-                  </button>
-                </div>
-                
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {receivedFiles.map((file) => (
-                    <div key={file.id} className="p-3 bg-slate-900/50 rounded-lg flex items-center gap-3">
-                      <div className="shrink-0">{getFileIcon(file.type)}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-300 truncate">{file.name}</p>
-                        <p className="text-xs text-slate-500">{formatFileSize(file.size)}</p>
-                      </div>
-                      <a href={file.url} download={file.name} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 shrink-0">
-                        <Download size={16} />Get
-                      </a>
-                    </div>
-                  ))}
-                </div>
+            <div className="p-[24px] card-elevated slide-in min-w-0" style={{animationDelay: '0.4s'}}>
+              <h3 className="text-[22px] font-serif font-medium mb-[16px] text-[#1F1F1F]">Features</h3>
+              <div className="space-y-[12px] text-[16px] text-[#333333]">
+                <div className="flex items-start gap-[12px]"><Lock size={18} className="text-[#333333] shrink-0 mt-[3px]" /> <span>WebRTC DTLS Transport Security</span></div>
+                <div className="flex items-start gap-[12px]"><FileArchive size={18} className="text-[#967C29] shrink-0 mt-[3px]" /> <span>Chunking Engine for Large Files</span></div>
+                <div className="flex items-start gap-[12px]"><Rotate3d size={18} className="text-[#E48A00] shrink-0 mt-[3px]" /> <span>Direct Peer-to-Peer Transfer</span></div>
+                <div className="flex items-start gap-[12px]"><Download size={18} className="text-[#0038FF] shrink-0 mt-[3px]" /> <span>Download all files as ZIP</span></div>
+                <div className="flex items-start gap-[12px]"><QrCode size={18} className="text-[#333333] shrink-0 mt-[3px]" /> <span>Connect via QR Code</span></div>
+                <div className="flex items-start gap-[12px]"><FishingHook size={18} className="text-[#D13D1B] shrink-0 mt-[3px]" /> <span>Drag & drop functionality</span></div>
               </div>
-            )}
+            </div>
           </div>
-        )}
 
-        <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in min-w-0" style={{animationDelay: '0.3s'}}>
-            <h3 className="text-lg font-bold mb-4 text-slate-300">How it works</h3>
-            <div className="space-y-3 text-sm text-slate-400">
-              <p>• Files transfer directly between devices</p>
-              <p>• Nothing is stored on any server</p>
-              <p>• Works on any device with a browser</p>
-              <p>• Simple 6-digit room codes</p>
-            </div>
-          </div>
-          <div className="p-6 bg-slate-800/30 rounded-xl border border-slate-700 slide-in min-w-0" style={{animationDelay: '0.4s'}}>
-            <h3 className="text-lg font-bold mb-4 text-slate-300">Features</h3>
-            <div className="space-y-3 text-sm text-slate-400">
-              <div className="flex items-start gap-3"><Lock size={18} className="text-blue-400 shrink-0 mt-0.5" /> <span>WebRTC DTLS Transport Security</span></div>
-              <div className="flex items-start gap-3"><FileArchive size={18} className="text-yellow-400 shrink-0 mt-0.5" /> <span>Chunking Engine for Large Files</span></div>
-              <div className="flex items-start gap-3"><Rotate3d size={18} className="text-red-400 shrink-0 mt-0.5" /> <span>Direct Peer-to-Peer Transfer</span></div>
-              <div className="flex items-start gap-3"><Download size={18} className="text-green-400 shrink-0 mt-0.5" /> <span>Download all files as ZIP</span></div>
-              <div className="flex items-start gap-3"><QrCode size={18} className="text-orange-400 shrink-0 mt-0.5" /> <span>Connect via QR Code</span></div>
-              <div className="flex items-start gap-3"><FishingHook size={18} className="text-purple-400 shrink-0 mt-0.5" /> <span>Drag & drop functionality</span></div>
-            </div>
-          </div>
         </div>
-
       </div>
       
-      {/* Vercel Speed Insights */}
       <SpeedInsights />
-      
     </div>
   );
 }
