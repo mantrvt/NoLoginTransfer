@@ -1,19 +1,68 @@
-# React + Vite
+<p align="center">
+  <img src="src/assets/transfuh.svg" alt="Transfuh Logo" width="300"/>
+</p>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<h1 align="center">NoLoginTransfer (Transfuh)</h1>
 
-Currently, two official plugins are available:
+<p align="center">
+  <strong>Share files with anyone, instantly. Zero servers, zero logins, 100% peer-to-peer.</strong>
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+<p align="center">
+  <a href="https://transfuh.vercel.app/"><strong>🌐 View Live Demo</strong></a>
+</p>
 
-## React Compiler
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#how-it-works-architecture">Architecture</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#getting-started">Getting Started</a>
+</p>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Overview
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-=======
-# NoLoginTransfer
->>>>>>> 05b101b9019cf50b12b3136b9dbba767067fa3d4
+**NoLoginTransfer (Transfuh)** is a lightning-fast, privacy-first web application that allows users to send files of any size directly to another device. By leveraging WebRTC data channels, files are transferred directly between browsers, meaning your data is **never stored on or routed through a centralized server.**
+
+Wrapped in a nostalgic, premium "retro-leisure" design system, it makes secure file sharing both beautiful and effortless.
+
+## Features
+
+* **Direct P2P Transfer:** Uses WebRTC DTLS security to transfer files directly between devices.
+* **Massive File Support:** Features a custom chunking engine that slices large files into 256KB segments, allowing for gigabyte-level transfers without crashing the browser.
+* **Adaptive Network Throttling:** Smart backpressure management monitors the browser's network buffer, dynamically yielding to prevent RAM overflow on slower connections.
+* **Connection Heartbeat:** Implements an invisible 10-second ping system to keep aggressive Wi-Fi routers from dropping idle connections.
+* **Frictionless Pairing:** Connect instantly using a simple 6-digit room code or by scanning an auto-generated QR code.
+* **Batch Downloading:** Integrated `JSZip` allows receivers to pack and download all received files as a single `.zip` archive with one click.
+* **No Server Storage:** Maximum privacy. Once the browser tab is closed, the connection is destroyed.
+
+## How it Works (Architecture)
+
+1. **Signaling:** When a user opens the app, PeerJS connects to a lightweight signaling server merely to exchange connection data (SDP/ICE candidates) via a 6-digit room code.
+2. **P2P Connection:** Once the handshake is complete, a direct WebRTC Data Channel is established between the two clients. The signaling server steps out of the way.
+3. **Chunking Engine:** When a user uploads a file, the `sendSingleFile` engine reads the file via the HTML5 File API, slices it into 256KB `ArrayBuffer` chunks, and streams them.
+4. **Stitching:** The receiving client holds the chunks in memory and re-assembles them into a downloadable `Blob` the moment the `file-end` signal is received.
+
+## 🛠 Tech Stack
+
+* **Frontend Framework:** React (Vite)
+* **Styling:** Tailwind CSS
+* **P2P Networking:** WebRTC via [PeerJS](https://peerjs.com/)
+* **Icons:** Lucide React
+* **File Handling:** JSZip, QRCode.react
+* **Deployment & Analytics:** Vercel & Vercel Speed Insights
+
+## Getting Started
+
+To run this project locally on your machine:
+
+### Prerequisites
+* Node.js (v16 or higher)
+* npm or pnpm
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/yourusername/NoLoginTransfer.git](https://github.com/yourusername/NoLoginTransfer.git)
