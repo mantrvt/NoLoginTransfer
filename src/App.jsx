@@ -3,6 +3,7 @@ import { Copy, Lock, FileArchive, Rotate3d, FishingHook, Upload, Download, Wifi,
 import { QRCodeSVG } from 'qrcode.react';
 import JSZip from 'jszip';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import transfuhLogo from './assets/transfuh.svg';
 
 export default function NoLoginTransfer() {
   const [roomCode, setRoomCode] = useState('');
@@ -313,7 +314,7 @@ export default function NoLoginTransfer() {
       const url = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `NoLoginTransfer-${Date.now()}.zip`;
+      a.download = `Transfuh-${Date.now()}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -375,18 +376,23 @@ export default function NoLoginTransfer() {
         </div>
       )}
 
-      {/* Main Grid max-width 1200px as per DESIGN.md */}
       <div className="max-w-[1200px] mx-auto pt-[40px] md:pt-[64px] px-[16px] md:px-[32px]">
         
         <div className="text-center mb-[40px] md:mb-[64px] slide-in">
-          <h1 className="font-display text-[40px] md:text-[48px] mb-[8px] text-white tracking-normal uppercase">NoLoginTransfer</h1>
+          {/* 🎨 NEW: Replaced text with your custom logo image */}
+          <h1 className="mb-[16px] md:mb-[24px]">
+            <img 
+              src={transfuhLogo} 
+              alt="Transfuh" 
+              className="mx-auto h-[64px] md:h-[96px] object-contain drop-shadow-md" 
+            />
+            <span className="sr-only">Transfuh</span>
+          </h1>
           <p className="font-heading-sec text-muted-sage text-[16px]">Share files with anyone, instantly.</p>
         </div>
 
-        {/* Constrain inner content for better readability */}
         <div className="max-w-[800px] mx-auto">
           
-          {/* Status Bar */}
           <div className="mb-[32px] p-[16px] card-secondary slide-in flex items-center gap-[16px]">
             {connected ? <Wifi className="text-primary" size={24} /> : <WifiOff className="text-dark-gray" size={24} />}
             <div className="flex-1 min-w-0">
@@ -395,12 +401,10 @@ export default function NoLoginTransfer() {
             </div>
           </div>
 
-          {/* Connection Controls */}
           <div className="grid md:grid-cols-2 gap-[24px] mb-[48px]">
             <div className="slide-in min-w-0 card-primary">
               <label className="block font-heading-sec text-[18px] mb-[12px] text-white">Your Room Code</label>
               <div className="flex w-full gap-[8px] mb-[8px]">
-                {/* Mobile touch target 44px, Desktop 32px */}
                 <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-[8px] h-[44px] md:h-[32px] input-field text-[16px] text-center" placeholder="------" />
                 <button onClick={copyToClipboard} disabled={!roomCode} className="btn-icon w-[44px] h-[44px] md:w-[32px] md:h-[32px] flex items-center justify-center shrink-0 disabled:opacity-50"><Copy size={16} /></button>
               </div>
@@ -430,7 +434,6 @@ export default function NoLoginTransfer() {
           {connected && (
             <div className="space-y-[40px] slide-in" style={{animationDelay: '0.2s'}}>
               
-              {/* SENDER PANEL */}
               <div className="card-primary">
                 <h3 className="font-heading-sec text-[20px] mb-[16px] flex items-center gap-[8px] text-white">
                   <Upload size={20} className="text-primary" /> Send Files
@@ -483,7 +486,6 @@ export default function NoLoginTransfer() {
                 </div>
               </div>
 
-              {/* RECEIVER PANEL */}
               {receivedFiles.length > 0 && (
                 <div className="card-primary bg-near-black">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[16px]">
@@ -514,7 +516,6 @@ export default function NoLoginTransfer() {
             </div>
           )}
 
-          {/* Info Panels */}
           <div className="mt-[48px] md:mt-[64px] grid grid-cols-1 md:grid-cols-2 gap-[24px]">
             <div className="card-secondary slide-in min-w-0" style={{animationDelay: '0.3s'}}>
               <h3 className="font-heading-sec text-[18px] mb-[16px] text-white">How it works</h3>
