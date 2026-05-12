@@ -23,8 +23,10 @@ export default function NoLoginTransfer() {
   const dragCounterRef = useRef(0);
   const pingIntervalRef = useRef(null);
   
+  // Ref to store incoming file chunks for massive files
   const incomingFilesRef = useRef({});
 
+  // Generate short 6-digit code
   const generateRoomCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
@@ -42,6 +44,7 @@ export default function NoLoginTransfer() {
     if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
   };
 
+  // Initialize PeerJS
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js';
@@ -94,6 +97,7 @@ export default function NoLoginTransfer() {
     };
   }, []);
 
+  // Connect to remote peer
   const connectToRoom = async () => {
     if (!remoteRoomCode || remoteRoomCode.length !== 6) {
       setStatus('Please enter a 6-digit room code');
@@ -124,6 +128,9 @@ export default function NoLoginTransfer() {
     });
   };
 
+  /**
+   * 📥 RECEIVER LOGIC
+   */
   const handleIncomingData = async (data) => {
     if (data.type === 'ping') return; 
 
@@ -166,6 +173,9 @@ export default function NoLoginTransfer() {
     }
   };
 
+  /**
+   * 📤 SENDER LOGIC (High-Speed Engine)
+   */
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
       try {
@@ -324,10 +334,10 @@ export default function NoLoginTransfer() {
   };
 
   const getFileIcon = (type) => {
-    if (type.startsWith('image/')) return <Image size={20} className="text-[#E48A00]" />;
-    if (type.startsWith('video/')) return <Video size={20} className="text-[#0038FF]" />;
-    if (type.includes('pdf') || type.includes('document')) return <FileText size={20} className="text-[#D13D1B]" />;
-    return <File size={20} className="text-[#967C29]" />;
+    if (type.startsWith('image/')) return <Image size={20} className="text-[#0988F0]" />;
+    if (type.startsWith('video/')) return <Video size={20} className="text-[#000000]" />;
+    if (type.includes('pdf') || type.includes('document')) return <FileText size={20} className="text-[#000000]" />;
+    return <File size={20} className="text-[#374151]" />;
   };
 
   const formatFileSize = (bytes) => {
@@ -349,128 +359,195 @@ export default function NoLoginTransfer() {
 
   return (
     <div 
-      className="min-h-screen overflow-x-hidden bg-[#FDFBF4] text-[#333333] font-sans pb-16"
+      className="min-h-screen overflow-x-hidden bg-[#FAF4C6] text-[#000000] font-sans pb-[64px]"
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* 🎨 VACATION® DESIGN SYSTEM STYLES */}
+      {/* 🌴 POOLSUITE DESIGN SYSTEM STYLES */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Nunito+Sans:wght@300;400;600;700&display=swap');
+        /* Simulating the retro fonts with standard fallbacks */
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap');
+
+        body { 
+          background-color: #FAF4C6; 
+          color: #000000; 
+          font-family: 'Everyday', 'Courier New', monospace, system-ui, sans-serif; 
+        }
         
-        body { font-family: 'Nunito Sans', sans-serif; background-color: #FDFBF4; }
-        .font-serif { font-family: 'EB Garamond', serif; }
-        
-        /* Buttons */
-        .btn-primary-dark { background: #333333; color: #FFFFFF; border-radius: 9999px; box-shadow: 0 1.5px 1.5px 0 rgba(0,0,0,0.75); transition: all 0.2s ease; border: none; }
-        .btn-primary-dark:hover:not(:disabled) { background: #1F1F1F; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.85); }
-        .btn-primary-dark:active:not(:disabled) { background: #1F1F1F; box-shadow: inset 0 1px 1px rgba(0,0,0,0.75); }
-        
-        .btn-primary-gold { background: #F1D27A; color: #333333; border-radius: 9999px; box-shadow: 0 1.5px 1.5px 0 rgba(0,0,0,0.75); transition: all 0.2s ease; border: none; }
-        .btn-primary-gold:hover:not(:disabled) { background: #E48A00; box-shadow: 0 2px 2px 0 rgba(0,0,0,0.85); }
-        .btn-primary-gold:active:not(:disabled) { background: #D97C00; box-shadow: inset 0 1px 1px rgba(0,0,0,0.75); }
-        
-        .btn-ghost { background: transparent; color: #333333; transition: all 0.2s ease; border-bottom: 1px solid transparent; }
-        .btn-ghost:hover:not(:disabled) { color: #000000; border-bottom: 1px solid #333333; }
-        
-        /* Inputs */
-        .input-field { background: #FFFFFF; color: #333333; border-radius: 2px; border: 1px solid #333333; transition: all 0.2s ease; outline: none; }
-        .input-field:focus { border: 2px solid #0038FF; box-shadow: 0 0 0 4px rgba(0, 56, 255, 0.22); }
-        .input-field:disabled { background: #E5E7EB; border-color: #CDC9C1; color: #777; }
-        
-        /* Cards */
-        .card-elevated { background: #FFFFFF; border: 1px solid #E5E7EB; box-shadow: inset -2px -2px 0px 0px rgba(0,0,0,0.05); border-radius: 8px; }
-        .card-elevated:hover { box-shadow: inset -2px -2px 1px -1px rgba(0,0,0,0.1); }
-        
-        /* Animations */
+        .font-display { font-family: 'Ishmeria', 'DM Serif Display', Georgia, serif; }
+        .font-heading-sec { font-family: 'ChiKareGo2', 'Space Mono', 'Courier New', monospace; }
+        .font-label { font-family: 'Pixolde', Arial, sans-serif; }
+        .font-ui { font-family: ui-sans-serif, system-ui, sans-serif; }
+
+        /* Core Components */
+        .btn-primary {
+          background: #F9F0E9;
+          color: #000000;
+          font-family: 'Pixolde', Arial, sans-serif;
+          border-radius: 0px 0px 4px 0px;
+          border: 1px solid #000000;
+          box-shadow: none;
+          transition: background 0.2s ease;
+        }
+        .btn-primary:hover:not(:disabled) { background: #F6D5D5; }
+        .btn-primary:disabled { background: #E5E7EB; color: #9B9B9B; border-color: #D1D5DB; cursor: not-allowed; }
+
+        .btn-icon {
+          background: #000000;
+          color: #FFFFFF;
+          border-radius: 2px;
+          border: none;
+          box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px inset;
+          transition: opacity 0.2s ease;
+        }
+        .btn-icon:hover:not(:disabled) { opacity: 0.8; }
+        .btn-icon:disabled { background: #E5E7EB; color: #9B9B9B; box-shadow: none; cursor: not-allowed; }
+
+        .btn-ghost {
+          background: transparent;
+          color: #000000;
+          border-bottom: 1px solid transparent;
+          transition: border-color 0.2s ease;
+        }
+        .btn-ghost:hover:not(:disabled) { border-bottom: 1px solid #000000; }
+
+        .card-primary {
+          background: #FAF4C6;
+          border: 1px solid #000000;
+          border-radius: 4px;
+          box-shadow: rgba(0, 0, 0, 0.3) 0px 50px 80px -50px;
+          transition: box-shadow 0.2s ease;
+        }
+        .card-primary:hover { box-shadow: rgba(0, 0, 0, 0.4) 0px 60px 100px -50px; }
+
+        .card-secondary {
+          background: #FFFFFF;
+          border: 1px solid #E5E7EB;
+          border-radius: 4px;
+          transition: border-color 0.2s ease;
+        }
+        .card-secondary:hover { border-color: #D1D5DB; }
+
+        .input-field {
+          background: #FFFFFF;
+          color: #000000;
+          font-family: 'Pixolde', Arial, sans-serif;
+          border-radius: 2px;
+          border: 1px solid #000000;
+          box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px inset;
+          outline: none;
+          transition: all 0.2s ease;
+        }
+        .input-field:focus { border-color: #0988F0; box-shadow: 0 0 0 2px rgba(9, 136, 240, 0.2), rgba(0, 0, 0, 0.2) 0px 1px 0px 0px inset; }
+        .input-field:disabled { background: #E5E7EB; border-color: #D1D5DB; color: #9B9B9B; box-shadow: none; }
+
+        .progress-track {
+          background: #E5E7EB;
+          border: 1px solid #000000;
+          border-radius: 2px;
+          height: 8px;
+          width: 100%;
+          overflow: hidden;
+        }
+        .progress-fill { background: #AFE2E5; height: 100%; transition: width 0.3s ease; }
+
+        /* Utilities */
         .slide-in { animation: slide-in 0.5s ease-out; }
-        @keyframes slide-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .drag-overlay { position: fixed; inset: 0; background: rgba(253, 251, 244, 0.85); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; border: 4px dashed #F1D27A; pointer-events: none; }
+        @keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .drag-overlay {
+          position: fixed; inset: 0; 
+          background: rgba(250, 244, 198, 0.85); 
+          backdrop-filter: blur(4px); 
+          z-index: 50; display: flex; align-items: center; justify-content: center; 
+          border: 4px dashed #0988F0; pointer-events: none;
+        }
       `}</style>
 
       {isDragging && (
         <div className="drag-overlay">
           <div className="text-center">
-            <Upload size={64} className="text-[#967C29] mx-auto mb-4" />
-            <p className="text-3xl font-serif font-medium text-[#333333]">Drop to Upload</p>
+            <Upload size={48} className="text-[#0988F0] mx-auto mb-4" />
+            <p className="text-[24px] font-display text-[#000000]">Drop files here</p>
           </div>
         </div>
       )}
 
-      {/* Top spacing follows 8px grid (40px on mobile, 80px on desktop) */}
-      <div className="max-w-[1200px] mx-auto pt-[40px] md:pt-[80px] px-[16px] md:px-[32px]">
+      {/* Main Grid max-width 1200px as per DESIGN.md */}
+      <div className="max-w-[1200px] mx-auto pt-[40px] md:pt-[64px] px-[16px] md:px-[32px]">
         
         <div className="text-center mb-[40px] md:mb-[64px] slide-in">
-          <h1 className="text-[40px] md:text-[48px] font-serif font-medium mb-[8px] text-[#1F1F1F] tracking-tight">NoLoginTransfer</h1>
-          <p className="text-[#333333] text-[16px] md:text-[18px]">Share files with anyone, instantly.</p>
+          <h1 className="font-display text-[40px] md:text-[48px] mb-[8px] text-[#000000] tracking-normal">NoLoginTransfer</h1>
+          <p className="font-heading-sec text-[#374151] text-[16px]">Share files with anyone, instantly.</p>
         </div>
 
-        {/* Layout Container */}
+        {/* Constrain inner content for better readability */}
         <div className="max-w-[800px] mx-auto">
           
-          <div className="mb-[32px] p-[16px] card-elevated slide-in flex items-center gap-[12px]">
-            {connected ? <Wifi className="text-[#967C29]" size={24} /> : <WifiOff className="text-[#CDC9C1]" size={24} />}
+          {/* Status Bar */}
+          <div className="mb-[32px] p-[16px] card-secondary slide-in flex items-center gap-[16px]">
+            {connected ? <Wifi className="text-[#0988F0]" size={24} /> : <WifiOff className="text-[#9B9B9B]" size={24} />}
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-[13px] uppercase tracking-wide text-[#333333]">Status</p>
-              {connected ? (
-                <p className="text-[22px] font-serif font-medium text-[#E48A00] truncate">Connected securely.</p>
-              ) : (
-                <p className="text-[16px] text-[#333333] truncate">{status}</p>
-              )}
+              <p className="font-heading-sec text-[14px] uppercase text-[#000000]">Status</p>
+              <p className={`font-label text-[18px] truncate ${connected ? 'text-[#0988F0]' : 'text-[#374151]'}`}>{status}</p>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-[32px] mb-[40px]">
-            <div className="slide-in min-w-0">
-              <label className="block text-[16px] font-serif font-medium mb-[8px] text-[#1F1F1F]">Your Room Code</label>
-              <div className="flex w-full gap-[8px] mb-[12px]">
-                <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-[16px] py-[12px] input-field text-[24px] font-serif text-center" placeholder="------" />
-                <button onClick={copyToClipboard} disabled={!roomCode} className="btn-primary-dark px-[20px] flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"><Copy size={18} /></button>
+          {/* Connection Controls */}
+          <div className="grid md:grid-cols-2 gap-[24px] mb-[48px]">
+            <div className="slide-in min-w-0 card-primary p-[20px]">
+              <label className="block font-heading-sec text-[18px] mb-[12px] text-[#000000]">Your Room Code</label>
+              <div className="flex w-full gap-[8px] mb-[8px]">
+                {/* Mobile touch target 44px, Desktop 32px */}
+                <input type="text" value={roomCode} readOnly className="flex-1 w-full min-w-0 px-[8px] h-[44px] md:h-[32px] input-field text-[16px] text-center" placeholder="------" />
+                <button onClick={copyToClipboard} disabled={!roomCode} className="btn-icon w-[44px] h-[44px] md:w-[32px] md:h-[32px] flex items-center justify-center shrink-0 disabled:opacity-50"><Copy size={16} /></button>
               </div>
-              <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full py-[8px] btn-ghost flex items-center justify-center gap-[8px] text-[16px] disabled:opacity-50">
+              <button onClick={() => setShowQR(!showQR)} disabled={!roomCode} className="w-full btn-ghost py-[8px] mt-[8px] flex items-center justify-center gap-[8px] text-[14px] font-heading-sec disabled:opacity-50">
                 <QrCode size={16} />{showQR ? 'Hide' : 'Show'} QR Code
               </button>
               {showQR && roomCode && (
-                <div className="mt-[16px] p-[16px] bg-white border border-[#E5E7EB] rounded-[2px] flex justify-center shadow-sm">
+                <div className="mt-[16px] p-[16px] bg-[#FFFFFF] border border-[#E5E7EB] rounded-[4px] flex justify-center">
                   <QRCodeSVG value={connectionUrl} size={160} level="H" includeMargin={true} />
                 </div>
               )}
-              <p className="text-[13px] text-[#333333] mt-[12px] text-center md:text-left">💡 Share this code to connect</p>
+              <p className="text-[12px] text-[#374151] mt-[16px] text-center md:text-left font-ui">💡 Share this code to connect</p>
             </div>
 
-            <div className="slide-in min-w-0" style={{animationDelay: '0.1s'}}>
-              <label className="block text-[16px] font-serif font-medium mb-[8px] text-[#1F1F1F]">Join a Room</label>
-              <div className="flex w-full gap-[8px] mb-[12px]">
-                <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 w-full min-w-0 px-[16px] py-[12px] input-field text-[24px] font-serif text-center disabled:opacity-50" />
-                <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="btn-primary-dark px-[24px] font-medium shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+            <div className="slide-in min-w-0 card-primary p-[20px]" style={{animationDelay: '0.1s'}}>
+              <label className="block font-heading-sec text-[18px] mb-[12px] text-[#000000]">Join a Room</label>
+              <div className="flex w-full gap-[8px] mb-[8px]">
+                <input type="text" value={remoteRoomCode} onChange={(e) => setRemoteRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={connected} maxLength={6} className="flex-1 w-full min-w-0 px-[8px] h-[44px] md:h-[32px] input-field text-[16px] text-center disabled:opacity-50" />
+                <button onClick={connectToRoom} disabled={connected || remoteRoomCode.length !== 6} className="btn-primary h-[44px] md:h-[32px] px-[16px] text-[16px] shrink-0 disabled:opacity-50">
                   {connected ? 'Connected' : 'Join'}
                 </button>
               </div>
-              <p className="text-[13px] text-[#333333] text-center md:text-left">💡 Or scan their QR code with your phone</p>
+              <p className="text-[12px] text-[#374151] mt-[16px] text-center md:text-left font-ui">💡 Or scan their QR code with your phone</p>
             </div>
           </div>
 
           {connected && (
-            <div className="space-y-[32px] slide-in" style={{animationDelay: '0.2s'}}>
-              <div className="p-[20px] md:p-[32px] card-elevated">
-                <h3 className="text-[22px] font-serif font-medium mb-[20px] flex items-center gap-[8px] text-[#1F1F1F]">
-                  <Upload size={22} className="text-[#967C29]" /> Send Files
+            <div className="space-y-[40px] slide-in" style={{animationDelay: '0.2s'}}>
+              
+              {/* SENDER PANEL */}
+              <div className="p-[20px] md:p-[24px] card-primary">
+                <h3 className="font-heading-sec text-[20px] mb-[16px] flex items-center gap-[8px] text-[#000000]">
+                  <Upload size={20} className="text-[#0988F0]" /> Send Files
                 </h3>
                 
-                <div className="space-y-[20px]">
+                <div className="space-y-[16px]">
                   <div>
                     <input ref={fileInputRef} type="file" multiple onChange={handleFileSelect} className="hidden" />
-                    <button onClick={() => fileInputRef.current.click()} className="w-full px-[16px] py-[32px] border-[2px] border-dashed border-[#CDC9C1] hover:border-[#F1D27A] bg-[#FDFBF4] rounded-[2px] font-medium transition-all flex flex-col md:flex-row items-center justify-center gap-[12px] text-[#333333] hover:bg-white text-[16px]">
-                      <Upload size={24} className="text-[#967C29]" />
+                    <button onClick={() => fileInputRef.current.click()} className="w-full px-[16px] py-[32px] border-[1px] border-dashed border-[#D9D9D9] hover:border-[#0988F0] hover:bg-[#F9F0E9] bg-[#FFFFFF] rounded-[4px] transition-all flex flex-col md:flex-row items-center justify-center gap-[12px] text-[#374151] font-label text-[16px]">
+                      <Upload size={24} className="mb-[4px] md:mb-0 text-[#000000]" />
                       <span>Choose Files or Drag & Drop</span>
                     </button>
                   </div>
 
                   {warning && (
-                    <div className="p-[12px] bg-[#FFF8E6] border border-[#F1D27A] rounded-[2px] flex items-start gap-[12px] text-[#E48A00] text-[13px]">
-                      <AlertTriangle size={18} className="shrink-0 mt-[2px]" />
+                    <div className="p-[12px] bg-[#FAF4C6] border border-[#FFB800] rounded-[4px] flex items-start gap-[12px] text-[#000000] text-[14px]">
+                      <AlertTriangle size={18} className="shrink-0 mt-[2px] text-[#FFB800]" />
                       <p>{warning}</p>
                     </div>
                   )}
@@ -478,18 +555,18 @@ export default function NoLoginTransfer() {
                   {files.length > 0 && (
                     <div className="space-y-[8px] max-h-[240px] overflow-y-auto pr-[4px]">
                       {files.map((fileObj) => (
-                        <div key={fileObj.id} className="p-[12px] bg-white border border-[#E5E7EB] rounded-[2px] flex items-center gap-[12px]">
+                        <div key={fileObj.id} className="p-[12px] card-secondary flex items-center gap-[12px]">
                           <div className="shrink-0">{getFileIcon(fileObj.type)}</div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[16px] font-medium text-[#333333] truncate">{fileObj.name}</p>
-                            <p className="text-[13px] text-[#777777]">{formatFileSize(fileObj.size)}</p>
+                            <p className="text-[14px] font-label text-[#000000] truncate">{fileObj.name}</p>
+                            <p className="text-[12px] font-ui text-[#9B9B9B]">{formatFileSize(fileObj.size)}</p>
                             {fileObj.progress > 0 && (
-                              <div className="mt-[8px] w-full h-[4px] bg-[#E5E7EB] rounded-full overflow-hidden">
-                                <div className="h-full bg-[#0038FF] transition-all duration-300" style={{ width: `${fileObj.progress}%` }} />
+                              <div className="mt-[8px] progress-track">
+                                <div className="progress-fill" style={{ width: `${fileObj.progress}%` }} />
                               </div>
                             )}
                           </div>
-                          <button onClick={() => removeFile(fileObj.id)} className="p-[8px] hover:bg-[#FDFBF4] rounded-[2px] transition-colors shrink-0"><X size={16} className="text-[#333333]" /></button>
+                          <button onClick={() => removeFile(fileObj.id)} className="p-[8px] hover:bg-[#E5E7EB] rounded-[2px] transition-colors shrink-0"><X size={16} className="text-[#000000]" /></button>
                         </div>
                       ))}
                     </div>
@@ -498,34 +575,35 @@ export default function NoLoginTransfer() {
                   <button 
                     onClick={sendFiles} 
                     disabled={files.length === 0} 
-                    className="w-full py-[13px] btn-primary-gold flex items-center justify-center gap-[8px] text-[18px] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-[12px] btn-primary flex items-center justify-center gap-[8px] text-[18px] disabled:opacity-50"
                   >
-                    <Upload size={20} className={files.length === 0 ? "opacity-50" : ""} />
+                    <Upload size={18} className={files.length === 0 ? "opacity-50" : ""} />
                     Send {files.length > 0 ? `${files.length} File(s)` : 'Files'}
                   </button>
                 </div>
               </div>
 
+              {/* RECEIVER PANEL */}
               {receivedFiles.length > 0 && (
-                <div className="p-[20px] md:p-[32px] bg-white border border-[#E5E7EB] rounded-[8px] shadow-sm">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[20px]">
-                    <h3 className="text-[22px] font-serif font-medium flex items-center gap-[8px] text-[#1F1F1F]">
-                      <Download size={22} className="text-[#E48A00]" /> Received ({receivedFiles.length})
+                <div className="p-[20px] md:p-[24px] card-primary bg-[#F9F0E9]">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[16px]">
+                    <h3 className="font-heading-sec text-[20px] flex items-center gap-[8px] text-[#000000]">
+                      <Download size={20} className="text-[#AFE2E5]" /> Received ({receivedFiles.length})
                     </h3>
-                    <button onClick={downloadAllAsZip} disabled={downloadingAll} className="w-full md:w-auto px-[20px] py-[10px] btn-primary-dark text-[16px] flex items-center justify-center gap-[8px] disabled:opacity-50">
+                    <button onClick={downloadAllAsZip} disabled={downloadingAll} className="w-full md:w-auto px-[16px] py-[8px] btn-primary text-[14px] flex items-center justify-center gap-[8px] disabled:opacity-50">
                       <PackageOpen size={16} />{downloadingAll ? 'Packing...' : 'Download All'}
                     </button>
                   </div>
                   
                   <div className="space-y-[8px] max-h-[240px] overflow-y-auto pr-[4px]">
                     {receivedFiles.map((file) => (
-                      <div key={file.id} className="p-[12px] bg-[#FDFBF4] border border-[#E5E7EB] rounded-[2px] flex items-center gap-[12px]">
+                      <div key={file.id} className="p-[12px] card-secondary flex items-center gap-[12px]">
                         <div className="shrink-0">{getFileIcon(file.type)}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[16px] font-medium text-[#333333] truncate">{file.name}</p>
-                          <p className="text-[13px] text-[#777777]">{formatFileSize(file.size)}</p>
+                          <p className="text-[14px] font-label text-[#000000] truncate">{file.name}</p>
+                          <p className="text-[12px] font-ui text-[#9B9B9B]">{formatFileSize(file.size)}</p>
                         </div>
-                        <a href={file.url} download={file.name} className="px-[16px] py-[8px] border border-[#333333] rounded-[9999px] text-[13px] font-medium hover:bg-[#333333] hover:text-white transition-colors flex items-center gap-[6px] shrink-0">
+                        <a href={file.url} download={file.name} className="px-[12px] py-[6px] btn-primary text-[14px] flex items-center gap-[6px] shrink-0">
                           <Download size={14} /> Get
                         </a>
                       </div>
@@ -536,25 +614,26 @@ export default function NoLoginTransfer() {
             </div>
           )}
 
-          <div className="mt-[40px] md:mt-[64px] grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[32px]">
-            <div className="p-[24px] card-elevated slide-in min-w-0" style={{animationDelay: '0.3s'}}>
-              <h3 className="text-[22px] font-serif font-medium mb-[16px] text-[#1F1F1F]">How it works</h3>
-              <div className="space-y-[12px] text-[16px] text-[#333333]">
+          {/* Info Panels */}
+          <div className="mt-[48px] md:mt-[64px] grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+            <div className="p-[24px] card-secondary slide-in min-w-0" style={{animationDelay: '0.3s'}}>
+              <h3 className="font-heading-sec text-[18px] mb-[16px] text-[#000000]">How it works</h3>
+              <div className="space-y-[12px] text-[14px] text-[#374151] font-ui">
                 <p>• Files transfer directly between devices</p>
                 <p>• Nothing is stored on any server</p>
                 <p>• Works on any device with a browser</p>
                 <p>• Simple 6-digit room codes</p>
               </div>
             </div>
-            <div className="p-[24px] card-elevated slide-in min-w-0" style={{animationDelay: '0.4s'}}>
-              <h3 className="text-[22px] font-serif font-medium mb-[16px] text-[#1F1F1F]">Features</h3>
-              <div className="space-y-[12px] text-[16px] text-[#333333]">
-                <div className="flex items-start gap-[12px]"><Lock size={18} className="text-[#333333] shrink-0 mt-[3px]" /> <span>WebRTC DTLS Transport Security</span></div>
-                <div className="flex items-start gap-[12px]"><FileArchive size={18} className="text-[#967C29] shrink-0 mt-[3px]" /> <span>Chunking Engine for Large Files</span></div>
-                <div className="flex items-start gap-[12px]"><Rotate3d size={18} className="text-[#E48A00] shrink-0 mt-[3px]" /> <span>Direct Peer-to-Peer Transfer</span></div>
-                <div className="flex items-start gap-[12px]"><Download size={18} className="text-[#0038FF] shrink-0 mt-[3px]" /> <span>Download all files as ZIP</span></div>
-                <div className="flex items-start gap-[12px]"><QrCode size={18} className="text-[#333333] shrink-0 mt-[3px]" /> <span>Connect via QR Code</span></div>
-                <div className="flex items-start gap-[12px]"><FishingHook size={18} className="text-[#D13D1B] shrink-0 mt-[3px]" /> <span>Drag & drop functionality</span></div>
+            <div className="p-[24px] card-secondary slide-in min-w-0" style={{animationDelay: '0.4s'}}>
+              <h3 className="font-heading-sec text-[18px] mb-[16px] text-[#000000]">Features</h3>
+              <div className="space-y-[12px] text-[14px] text-[#374151] font-ui">
+                <div className="flex items-start gap-[12px]"><Lock size={16} className="text-[#000000] shrink-0 mt-[2px]" /> <span>WebRTC DTLS Transport Security</span></div>
+                <div className="flex items-start gap-[12px]"><FileArchive size={16} className="text-[#0988F0] shrink-0 mt-[2px]" /> <span>Chunking Engine for Large Files</span></div>
+                <div className="flex items-start gap-[12px]"><Rotate3d size={16} className="text-[#000000] shrink-0 mt-[2px]" /> <span>Direct Peer-to-Peer Transfer</span></div>
+                <div className="flex items-start gap-[12px]"><Download size={16} className="text-[#AFE2E5] shrink-0 mt-[2px]" /> <span>Download all files as ZIP</span></div>
+                <div className="flex items-start gap-[12px]"><QrCode size={16} className="text-[#000000] shrink-0 mt-[2px]" /> <span>Connect via QR Code</span></div>
+                <div className="flex items-start gap-[12px]"><FishingHook size={16} className="text-[#0988F0] shrink-0 mt-[2px]" /> <span>Drag & drop functionality</span></div>
               </div>
             </div>
           </div>
