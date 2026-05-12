@@ -380,17 +380,6 @@ export default function NoLoginTransfer() {
         
         <div className="text-center mb-[40px] md:mb-[64px] slide-in">
           
-          {/* 🎨 NEW: Added custom slow bounce keyframes and applied them to the larger image! */}
-          <style>{`
-            @keyframes slow-float {
-              0%, 100% { transform: translateY(0); }
-              50% { transform: translateY(-12px); }
-            }
-            .animate-slow-float {
-              animation: slow-float 4s ease-in-out infinite;
-            }
-          `}</style>
-          
           <h1 className="mb-[16px] md:mb-[24px]">
             <img 
               src={transfuhLogo} 
