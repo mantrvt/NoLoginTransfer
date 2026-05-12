@@ -384,7 +384,7 @@ export default function NoLoginTransfer() {
             <img 
               src={transfuhLogo} 
               alt="Transfuh" 
-              className="mx-auto h-[96px] md:h-[140px] object-contain drop-shadow-md animate-slow-float" 
+              className="mx-auto h-[100px] md:h-[150px] object-contain drop-shadow-md animate-slow-float" 
             />
             <span className="sr-only">Transfuh</span>
           </h1>
