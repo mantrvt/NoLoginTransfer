@@ -1,3 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 🌴 POOLSUITE DESIGN SYSTEM STYLES */
+body { 
+  background-color: #FAF4C6; 
+  color: #000000; 
+  font-family: 'Everyday', 'Courier New', monospace, system-ui, sans-serif; 
+}
+
+.font-display { font-family: 'Ishmeria', 'DM Serif Display', Georgia, serif; }
+.font-heading-sec { font-family: 'ChiKareGo2', 'Space Mono', 'Courier New', monospace; }
+.font-label { font-family: 'Pixolde', Arial, sans-serif; }
+.font-ui { font-family: ui-sans-serif, system-ui, sans-serif; }
+
+/* Core Components */
+.btn-primary {
+  background: #F9F0E9;
+  color: #000000;
+  font-family: 'Pixolde', Arial, sans-serif;
+  border-radius: 0px 0px 4px 0px;
+  border: 1px solid #000000;
+  box-shadow: none;
+  transition: background 0.2s ease;
+}
+.btn-primary:hover:not(:disabled) { background: #F6D5D5; }
+.btn-primary:disabled { background: #E5E7EB; color: #9B9B9B; border-color: #D1D5DB; cursor: not-allowed; }
+
+.btn-icon {
+  background: #000000;
+  color: #FFFFFF;
+  border-radius: 2px;
+  border: none;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px inset;
+  transition: opacity 0.2s ease;
+}
+.btn-icon:hover:not(:disabled) { opacity: 0.8; }
+.btn-icon:disabled { background: #E5E7EB; color: #9B9B9B; box-shadow: none; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: #000000;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+.btn-ghost:hover:not(:disabled) { border-bottom: 1px solid #000000; }
+
+.card-primary {
+  background: #FAF4C6;
+  border: 1px solid #000000;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 50px 80px -50px;
+  transition: box-shadow 0.2s ease;
+}
+.card-primary:hover { box-shadow: rgba(0, 0, 0, 0.4) 0px 60px 100px -50px; }
+
+.card-secondary {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+}
+.card-secondary:hover { border-color: #D1D5DB; }
+
+.input-field {
+  background: #FFFFFF;
+  color: #000000;
+  font-family: 'Pixolde', Arial, sans-serif;
+  border-radius: 2px;
+  border: 1px solid #000000;
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px inset;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.input-field:focus { border-color: #0988F0; box-shadow: 0 0 0 2px rgba(9, 136, 240, 0.2), rgba(0, 0, 0, 0.2) 0px 1px 0px 0px inset; }
+.input-field:disabled { background: #E5E7EB; border-color: #D1D5DB; color: #9B9B9B; box-shadow: none; }
+
+.progress-track {
+  background: #E5E7EB;
+  border: 1px solid #000000;
+  border-radius: 2px;
+  height: 8px;
+  width: 100%;
+  overflow: hidden;
+}
+.progress-fill { background: #AFE2E5; height: 100%; transition: width 0.3s ease; }
+
+/* Utilities */
+.slide-in { animation: slide-in 0.5s ease-out; }
+@keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.drag-overlay {
+  position: fixed; inset: 0; 
+  background: rgba(250, 244, 198, 0.85); 
+  backdrop-filter: blur(4px); 
+  z-index: 50; display: flex; align-items: center; justify-content: center; 
+  border: 4px dashed #0988F0; pointer-events: none;
+}
