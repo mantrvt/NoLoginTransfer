@@ -49,6 +49,8 @@ export default function NoLoginTransfer() {
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js';
+    script.integrity = 'sha384-qOF1Ybxd53PR4BTaDzAk+eXLDARxOKQYQpXPqbJu/xkJWLIDDfP/ZusfTctQyNs+';
+    script.crossOrigin = 'anonymous';
     script.async = true;
     script.onload = () => {
       const code = generateRoomCode();
@@ -134,6 +136,11 @@ export default function NoLoginTransfer() {
    */
   const handleIncomingData = async (data) => {
     if (data.type === 'ping') return; 
+
+    // Sanitize filename to prevent path traversal (e.g., .., /)
+    if (data.fileName) {
+      data.fileName = data.fileName.split(/[\\/]/).pop().replace(/\.\./g, '');
+    }
 
     if (data.type === 'file-start') {
       incomingFilesRef.current[data.fileName] = {
