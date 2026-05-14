@@ -319,9 +319,20 @@ export default function NoLoginTransfer() {
       }
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(zipBlob);
+      
+      // --- FORMATTED DATE INJECTION ---
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+      const yy = String(today.getFullYear()).slice(-2);
+      
+      const formattedDate = `${dd}-${mm}-${yy}`;
+      
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Transfuh-${Date.now()}.zip`;
+      a.download = `transfuhhh-${formattedDate}.zip`; // Updates the file name
+      // --------------------------------
+      
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
