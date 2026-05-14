@@ -325,7 +325,7 @@ export default function NoLoginTransfer() {
       const mm = String(today.getMonth() + 1).padStart(2, '0'); 
       const yy = String(today.getFullYear()).slice(-2);
       
-      const formattedDate = `${dd}-${mm}-${yy}`;
+      const formattedDate = `${dd}${mm}${yy}`;
       
       // --- RANDOM ID INJECTION ---
       // Generates a random integer between 1000 and 9999
