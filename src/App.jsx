@@ -326,7 +326,7 @@ export default function NoLoginTransfer() {
       const mm = String(today.getMonth() + 1).padStart(2, '0'); 
       const yy = String(today.getFullYear()).slice(-2);
       
-      const formattedDate = `${dd}-${mm}-${yy}`;
+      const formattedDate = `${dd}${mm}${yy}`;
       
       const a = document.createElement('a');
       a.href = url;
