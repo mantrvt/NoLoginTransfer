@@ -320,17 +320,22 @@ export default function NoLoginTransfer() {
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(zipBlob);
       
-      // --- FORMATTED DATE INJECTION ---
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
       const mm = String(today.getMonth() + 1).padStart(2, '0'); 
       const yy = String(today.getFullYear()).slice(-2);
       
-      const formattedDate = `${dd}${mm}${yy}`;
+      const formattedDate = `${dd}-${mm}-${yy}`;
+      
+      // --- RANDOM ID INJECTION ---
+      // Generates a random integer between 1000 and 9999
+      const randomId = Math.floor(Math.random() * 9000) + 1000;
       
       const a = document.createElement('a');
       a.href = url;
-      a.download = `transfuhhh-${formattedDate}.zip`; // Updates the file name
+      
+      // Filename will now look like: transfuhhh-(14-05-26)-4829.zip
+      a.download = `transfuhhh-(${formattedDate})-${randomId}.zip`; 
       // --------------------------------
       
       document.body.appendChild(a);
