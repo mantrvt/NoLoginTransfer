@@ -335,7 +335,7 @@ export default function NoLoginTransfer() {
       a.href = url;
       
       // Filename will now look like: transfuhhh-(14-05-26)-4829.zip
-      a.download = `transfuhhh-(${formattedDate})-${randomId}.zip`; 
+      a.download = `transfuhhh-${formattedDate}-${randomId}.zip`;
       // --------------------------------
       
       document.body.appendChild(a);
