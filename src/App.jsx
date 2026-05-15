@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import JSZip from 'jszip';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import transfuhLogo from './assets/transfuh.svg';
-import bgImage from './assets/bg2.png';
+import bgImage from './assets/bg.png';
 
 export default function NoLoginTransfer() {
   const [roomCode, setRoomCode] = useState('');
