@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import JSZip from 'jszip';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import transfuhLogo from './assets/transfuh.svg';
+import bgImage from './assets/bg.png';
 
 export default function NoLoginTransfer() {
   const [roomCode, setRoomCode] = useState('');
@@ -419,6 +420,12 @@ export default function NoLoginTransfer() {
   return (
     <div 
       className="min-h-screen overflow-x-hidden text-white font-mono pb-[64px]"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
