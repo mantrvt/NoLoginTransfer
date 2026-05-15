@@ -12,6 +12,7 @@ export default function NoLoginTransfer() {
   const [connected, setConnected] = useState(false);
   const [files, setFiles] = useState([]);
   const [receivedFiles, setReceivedFiles] = useState([]);
+  const [receivingProgress, setReceivingProgress] = useState({}); // 🚀 NEW: State for incoming file progress
   const [status, setStatus] = useState('Ready');
   const [warning, setWarning] = useState('');
   const [showQR, setShowQR] = useState(false);
@@ -137,7 +138,7 @@ export default function NoLoginTransfer() {
   const handleIncomingData = async (data) => {
     if (data.type === 'ping') return; 
 
-    // Sanitize filename to prevent path traversal (e.g., .., /)
+    // Sanitize filename to prevent path traversal
     if (data.fileName) {
       data.fileName = data.fileName.split(/[\\/]/).pop().replace(/\.\./g, '');
     }
@@ -147,14 +148,33 @@ export default function NoLoginTransfer() {
         chunks: [],
         type: data.fileType,
         size: data.fileSize,
-        receivedBytes: 0
+        receivedBytes: 0,
+        lastReportedProgress: 0
       };
+      
+      // 🚀 NEW: Add to receiving state so UI progress bar appears
+      setReceivingProgress(prev => ({
+        ...prev,
+        [data.fileName]: { size: data.fileSize, type: data.fileType, progress: 0 }
+      }));
+      
       setStatus(`Receiving: ${data.fileName}...`);
+      
     } else if (data.type === 'file-chunk') {
       const fileTracker = incomingFilesRef.current[data.fileName];
       if (fileTracker) {
         fileTracker.chunks.push(data.chunk);
         fileTracker.receivedBytes += data.chunk.byteLength;
+        
+        // 🚀 NEW: Calculate incoming progress and throttle UI updates
+        const currentProgress = Math.min(100, Math.round((fileTracker.receivedBytes / fileTracker.size) * 100));
+        if (currentProgress >= fileTracker.lastReportedProgress + 5) {
+          fileTracker.lastReportedProgress = currentProgress;
+          setReceivingProgress(prev => ({
+            ...prev,
+            [data.fileName]: { ...prev[data.fileName], progress: currentProgress }
+          }));
+        }
       }
     } else if (data.type === 'file-end') {
       const fileTracker = incomingFilesRef.current[data.fileName];
@@ -172,12 +192,30 @@ export default function NoLoginTransfer() {
         }]);
         
         delete incomingFilesRef.current[data.fileName];
+        
+        // 🚀 NEW: Remove from active receiving progress state once finished
+        setReceivingProgress(prev => {
+          const copy = { ...prev };
+          delete copy[data.fileName];
+          return copy;
+        });
+        
         setStatus(`✅ Got: ${data.fileName}`);
       }
     } else if (data.type === 'batch-start') {
       setStatus(`Receiving ${data.fileCount} file(s)...`);
     } else if (data.type === 'batch-complete') {
       setStatus('All files received!');
+    }
+  };
+
+  /**
+   * 🗑️ NEW: Remove a fully received file
+   */
+  const removeReceivedFile = (fileId, fileUrl) => {
+    setReceivedFiles(prev => prev.filter(f => f.id !== fileId));
+    if (fileUrl) {
+      URL.revokeObjectURL(fileUrl); // Clean up browser memory!
     }
   };
 
@@ -325,18 +363,14 @@ export default function NoLoginTransfer() {
       const mm = String(today.getMonth() + 1).padStart(2, '0'); 
       const yy = String(today.getFullYear()).slice(-2);
       
-      const formattedDate = `${dd}${mm}${yy}`;
+      const formattedDate = `${dd}-${mm}-${yy}`;
       
-      // --- RANDOM ID INJECTION ---
-      // Generates a random integer between 1000 and 9999
       const randomId = Math.floor(Math.random() * 9000) + 1000;
       
       const a = document.createElement('a');
       a.href = url;
       
-      // Filename will now look like: transfuhhh-(14-05-26)-4829.zip
-      a.download = `transfuhhh-${formattedDate}-${randomId}.zip`;
-      // --------------------------------
+      a.download = `transfuhhh-(${formattedDate})-${randomId}.zip`;
       
       document.body.appendChild(a);
       a.click();
@@ -358,6 +392,7 @@ export default function NoLoginTransfer() {
   };
 
   const getFileIcon = (type) => {
+    if (!type) return <File size={20} className="text-muted-sage" />;
     if (type.startsWith('image/')) return <Image size={20} className="text-primary" />;
     if (type.startsWith('video/')) return <Video size={20} className="text-white" />;
     if (type.includes('pdf') || type.includes('document')) return <FileText size={20} className="text-white" />;
@@ -493,7 +528,7 @@ export default function NoLoginTransfer() {
                               </div>
                             )}
                           </div>
-                          <button onClick={() => removeFile(fileObj.id)} className="p-[8px] hover:bg-primary/10 hover:text-primary transition-colors shrink-0"><X size={16} /></button>
+                          <button onClick={() => removeFile(fileObj.id)} className="p-[8px] hover:bg-primary/10 hover:text-primary transition-colors shrink-0 text-dark-gray"><X size={16} /></button>
                         </div>
                       ))}
                     </div>
@@ -510,18 +545,38 @@ export default function NoLoginTransfer() {
                 </div>
               </div>
 
-              {receivedFiles.length > 0 && (
+              {/* 🚀 NEW: Updated Receiver Panel with active progress & remove buttons */}
+              {(receivedFiles.length > 0 || Object.keys(receivingProgress).length > 0) && (
                 <div className="card-primary bg-near-black">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[16px]">
                     <h3 className="font-heading-sec text-[20px] flex items-center gap-[8px] text-white">
                       <Download size={20} className="text-highlight" /> Received ({receivedFiles.length})
                     </h3>
-                    <button onClick={downloadAllAsZip} disabled={downloadingAll} className="w-full md:w-auto px-[16px] py-[8px] btn-primary text-[14px] flex items-center justify-center gap-[8px] disabled:opacity-50">
+                    <button onClick={downloadAllAsZip} disabled={downloadingAll || receivedFiles.length === 0} className="w-full md:w-auto px-[16px] py-[8px] btn-primary text-[14px] flex items-center justify-center gap-[8px] disabled:opacity-50">
                       <PackageOpen size={16} />{downloadingAll ? 'Packing...' : 'Download All'}
                     </button>
                   </div>
                   
                   <div className="space-y-[8px] max-h-[240px] overflow-y-auto pr-[4px]">
+                    
+                    {/* Render files currently being received */}
+                    {Object.entries(receivingProgress).map(([fileName, info]) => (
+                      <div key={`incoming-${fileName}`} className="p-[12px] card-secondary flex items-center gap-[12px]">
+                        <div className="shrink-0">{getFileIcon(info.type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[14px] font-label text-white truncate">{fileName}</p>
+                          <p className="text-[12px] font-ui text-dark-gray">Receiving... {formatFileSize(info.size)}</p>
+                          <div className="mt-[8px] progress-track">
+                            <div className="progress-fill" style={{ width: `${info.progress}%` }} />
+                          </div>
+                        </div>
+                        <div className="p-[8px] shrink-0">
+                          <span className="text-[12px] text-highlight font-ui">{info.progress}%</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Render completed received files */}
                     {receivedFiles.map((file) => (
                       <div key={file.id} className="p-[12px] card-secondary flex items-center gap-[12px]">
                         <div className="shrink-0">{getFileIcon(file.type)}</div>
@@ -529,9 +584,18 @@ export default function NoLoginTransfer() {
                           <p className="text-[14px] font-label text-white truncate">{file.name}</p>
                           <p className="text-[12px] font-ui text-dark-gray">{formatFileSize(file.size)}</p>
                         </div>
-                        <a href={file.url} download={file.name} className="px-[12px] py-[6px] btn-primary text-[14px] flex items-center gap-[6px] shrink-0">
-                          <Download size={14} /> Get
-                        </a>
+                        <div className="flex items-center gap-[8px] shrink-0">
+                          <a href={file.url} download={file.name} className="px-[12px] py-[6px] btn-primary text-[14px] flex items-center gap-[6px]">
+                            <Download size={14} /> Get
+                          </a>
+                          <button 
+                            onClick={() => removeReceivedFile(file.id, file.url)} 
+                            className="p-[8px] hover:bg-primary/10 hover:text-primary transition-colors text-dark-gray"
+                            title="Remove file"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
