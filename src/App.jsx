@@ -6,18 +6,28 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import bgImage from './assets/bg8.png';
 
 // 🚀 NEW: Import React Three Fiber tools
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Environment, Float, ContactShadows, Center } from '@react-three/drei';
 
 function Logo3D() {
   const gltf = useGLTF('/Transfuh.gltf'); 
+  const logoRef = useRef(); // Creates a direct hook to the 3D object
+
+  // This runs 60 times a second and spins the logo!
+  useFrame((state, delta) => {
+    if (logoRef.current) {
+      // Change the '0.5' to make it spin faster or slower
+      logoRef.current.rotation.y += delta * 0.5; 
+    }
+  });
+
   return (
-    // <Center> automatically calculates the exact middle of any 3D model!
     <Center>
       <primitive 
+        ref={logoRef} // Attaches our hook to the model
         object={gltf.scene} 
-        scale={[20, 20, 20]} 
-        // 1.57 radians is exactly 90 degrees. This spins it to face the camera!
+        scale={[12, 12, 12]} 
+        // We start it facing forward, and the useFrame takes over from there!
         rotation={[0, -1.57, 0]} 
       />
     </Center>
