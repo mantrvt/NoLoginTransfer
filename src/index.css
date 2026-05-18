@@ -4,7 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 💻 KRACKED DEVS DESIGN SYSTEM STYLES */
 body { 
   background-color: #000000; 
   color: #FFFFFF; 
@@ -92,7 +91,7 @@ body {
 }
 
 .card-primary {
-  background: rgba(27, 34, 27, 0.7);
+  background: rgba(27, 34, 27, 0.867);
   border: 1px solid #22C55E;
   border-radius: 0px;
   padding: 22.5px;

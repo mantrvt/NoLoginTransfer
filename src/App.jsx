@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import JSZip from 'jszip';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import transfuhLogo from './assets/transfuh.svg';
-import bgImage from './assets/bg.png';
+import bgImage from './assets/bg8.png';
 
 export default function NoLoginTransfer() {
   const [roomCode, setRoomCode] = useState('');
@@ -133,9 +133,7 @@ export default function NoLoginTransfer() {
     });
   };
 
-  /**
-   * 📥 RECEIVER LOGIC
-   */
+  // RECEIVER LOGIC
   const handleIncomingData = async (data) => {
     if (data.type === 'ping') return; 
 
@@ -153,7 +151,7 @@ export default function NoLoginTransfer() {
         lastReportedProgress: 0
       };
       
-      // 🚀 NEW: Add to receiving state so UI progress bar appears
+      // Add to receiving state so UI progress bar appears
       setReceivingProgress(prev => ({
         ...prev,
         [data.fileName]: { size: data.fileSize, type: data.fileType, progress: 0 }
@@ -167,7 +165,7 @@ export default function NoLoginTransfer() {
         fileTracker.chunks.push(data.chunk);
         fileTracker.receivedBytes += data.chunk.byteLength;
         
-        // 🚀 NEW: Calculate incoming progress and throttle UI updates
+        // Calculate incoming progress and throttle UI updates
         const currentProgress = Math.min(100, Math.round((fileTracker.receivedBytes / fileTracker.size) * 100));
         if (currentProgress >= fileTracker.lastReportedProgress + 5) {
           fileTracker.lastReportedProgress = currentProgress;
@@ -194,7 +192,7 @@ export default function NoLoginTransfer() {
         
         delete incomingFilesRef.current[data.fileName];
         
-        // 🚀 NEW: Remove from active receiving progress state once finished
+        // Remove from active receiving progress state once finished
         setReceivingProgress(prev => {
           const copy = { ...prev };
           delete copy[data.fileName];
@@ -210,9 +208,7 @@ export default function NoLoginTransfer() {
     }
   };
 
-  /**
-   * 🗑️ NEW: Remove a fully received file
-   */
+  // Remove a fully received file
   const removeReceivedFile = (fileId, fileUrl) => {
     setReceivedFiles(prev => prev.filter(f => f.id !== fileId));
     if (fileUrl) {
@@ -220,9 +216,7 @@ export default function NoLoginTransfer() {
     }
   };
 
-  /**
-   * 📤 SENDER LOGIC (High-Speed Engine)
-   */
+  // SENDER LOGIC (High-Speed Engine)
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
       try {
@@ -454,7 +448,7 @@ export default function NoLoginTransfer() {
             <span className="sr-only">Transfuh</span>
           </h1>
           
-          <p className="font-heading-sec text-muted-sage text-[16px]">Share files with anyone, instantly.</p>
+          <p className="font-heading-sec text-muted-sage text-[16px] text-white">Share files with anyone, instantly.</p>
         </div>
 
         <div className="max-w-[800px] mx-auto">
@@ -552,7 +546,7 @@ export default function NoLoginTransfer() {
                 </div>
               </div>
 
-              {/* 🚀 NEW: Updated Receiver Panel with active progress & remove buttons */}
+              {/* Updated Receiver Panel with active progress & remove buttons */}
               {(receivedFiles.length > 0 || Object.keys(receivingProgress).length > 0) && (
                 <div className="card-primary bg-near-black">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[16px]">
