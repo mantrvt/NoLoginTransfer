@@ -452,7 +452,7 @@ export default function NoLoginTransfer() {
             <div className="absolute z-10 w-[500px] md:w-[800px] h-[400px] md:h-[600px] cursor-grab active:cursor-grabbing">
               
               <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-                <Suspense fallback={null}>
+                <Suspense fallback={<div>Loading 3D...</div>}>
                   <ambientLight intensity={0.5} />
                   <directionalLight position={[10, 10, 10]} intensity={1.5} />
                   <directionalLight position={[-10, -10, -10]} intensity={0.5} />
