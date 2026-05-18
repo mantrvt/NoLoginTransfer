@@ -16,7 +16,7 @@ function Logo3D() {
     <Center>
       <primitive 
         object={gltf.scene} 
-        scale={[15, 15, 15]} 
+        scale={[6, 6, 6]} 
         rotation={[0, -1.57, 0]} 
       />
     </Center>
@@ -445,32 +445,41 @@ export default function NoLoginTransfer() {
         
         <div className="text-center mb-[40px] md:mb-[64px] slide-in flex flex-col items-center">
           
-          <div className="w-full h-[120px] md:h-[180px] max-w-[500px] mx-auto cursor-grab active:cursor-grabbing mb-[16px]">
-            <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-              <Suspense fallback={null}>
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 10, 10]} intensity={1.5} />
-                <directionalLight position={[-10, -10, -10]} intensity={0.5} />
-                
-                {/* 🚀 NEW: The magic grab-and-spin control! */}
-                {/* enableZoom/Pan=false prevents the user from accidentally scrolling away from the logo */}
-                <OrbitControls 
-                  enableZoom={false} 
-                  enablePan={false} 
-                  autoRotate={true} 
-                  autoRotateSpeed={4} 
-                />
-                
-                <Float speed={2.5} rotationIntensity={0.2} floatIntensity={1.5}>
-                  <Logo3D />
-                </Float>
-                
-                <Environment preset="city" />
-              </Suspense>
-            </Canvas>
+          {/* 1. The Anchor: Holds the normal space so your page layout doesn't collapse */}
+          <div className="relative w-full h-[120px] md:h-[180px] mb-[16px] flex justify-center items-center">
+            
+            {/* 2. The Spiller: This floats OVER everything else (absolute) and sits on top (z-10) */}
+            <div className="absolute z-10 w-[500px] md:w-[800px] h-[400px] md:h-[600px] cursor-grab active:cursor-grabbing">
+              
+              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+                <Suspense fallback={null}>
+                  <ambientLight intensity={0.5} />
+                  <directionalLight position={[10, 10, 10]} intensity={1.5} />
+                  <directionalLight position={[-10, -10, -10]} intensity={0.5} />
+                  
+                  <OrbitControls 
+                    enableZoom={false} 
+                    enablePan={false} 
+                    autoRotate={true} 
+                    autoRotateSpeed={4} 
+                  />
+                  
+                  {/* You can make the scale HUGE here now! */}
+                  <Float speed={2.5} rotationIntensity={0.2} floatIntensity={1.5}>
+                    <Logo3D />
+                  </Float>
+                  
+                  <Environment preset="city" />
+                </Suspense>
+              </Canvas>
+
+            </div>
           </div>
           
-          <p className="font-heading-sec text-muted-sage text-[16px] text-white">Share files with anyone, instantly.</p>
+          {/* We added relative and z-20 here so this text still sits on top of the 3D canvas */}
+          <p className="relative z-20 font-heading-sec text-muted-sage text-[16px] text-white drop-shadow-md">
+            Share files with anyone, instantly.
+          </p>
         </div>
 
         <div className="max-w-[800px] mx-auto">
