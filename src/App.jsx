@@ -5,29 +5,18 @@ import JSZip from 'jszip';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import bgImage from './assets/bg8.png';
 
-// 🚀 NEW: Import React Three Fiber tools
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, Environment, Float, ContactShadows, Center } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
+// 🚀 NEW: Added OrbitControls to the import!
+import { useGLTF, Environment, Float, Center, OrbitControls } from '@react-three/drei';
 
 function Logo3D() {
   const gltf = useGLTF('/Transfuh.gltf'); 
-  const logoRef = useRef(); // Creates a direct hook to the 3D object
-
-  // This runs 60 times a second and spins the logo!
-  useFrame((state, delta) => {
-    if (logoRef.current) {
-      // Change the '0.5' to make it spin faster or slower
-      logoRef.current.rotation.y += delta * 0.5; 
-    }
-  });
-
+  // 🚀 CLEANUP: We deleted the useFrame custom spin because OrbitControls does it better!
   return (
     <Center>
       <primitive 
-        ref={logoRef} // Attaches our hook to the model
         object={gltf.scene} 
-        scale={[12, 12, 12]} 
-        // We start it facing forward, and the useFrame takes over from there!
+        scale={[15, 15, 15]} 
         rotation={[0, -1.57, 0]} 
       />
     </Center>
@@ -411,6 +400,12 @@ export default function NoLoginTransfer() {
     return <File size={20} className="text-muted-sage" />;
   };
 
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   const connectionUrl = `${window.location.origin}?room=${roomCode}`;
 
   useEffect(() => {
@@ -450,21 +445,26 @@ export default function NoLoginTransfer() {
         
         <div className="text-center mb-[40px] md:mb-[64px] slide-in flex flex-col items-center">
           
-          {/* 🚀 NEW: 3D Canvas Header replaces the static image */}
           <div className="w-full h-[120px] md:h-[180px] max-w-[500px] mx-auto cursor-grab active:cursor-grabbing mb-[16px]">
             <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
               <Suspense fallback={null}>
-                {/* Lighting setup */}
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[10, 10, 10]} intensity={1.5} />
                 <directionalLight position={[-10, -10, -10]} intensity={0.5} />
                 
-                {/* Floating Animation Wrapper */}
+                {/* 🚀 NEW: The magic grab-and-spin control! */}
+                {/* enableZoom/Pan=false prevents the user from accidentally scrolling away from the logo */}
+                <OrbitControls 
+                  enableZoom={false} 
+                  enablePan={false} 
+                  autoRotate={true} 
+                  autoRotateSpeed={4} 
+                />
+                
                 <Float speed={2.5} rotationIntensity={0.2} floatIntensity={1.5}>
                   <Logo3D />
                 </Float>
                 
-                {/* Adds a nice realistic environment reflection to the metallic material */}
                 <Environment preset="city" />
               </Suspense>
             </Canvas>
