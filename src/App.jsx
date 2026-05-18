@@ -1,10 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Copy, Lock, FileArchive, Rotate3d, FishingHook, Upload, Download, Wifi, WifiOff, X, QrCode, File, Image, Video, FileText, PackageOpen, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import JSZip from 'jszip';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import transfuhLogo from './assets/transfuh.svg';
 import bgImage from './assets/bg8.png';
+
+// 🚀 NEW: Import React Three Fiber tools
+import { Canvas } from '@react-three/fiber';
+import { useGLTF, Environment, Float, ContactShadows, Center } from '@react-three/drei';
+
+function Logo3D() {
+  const gltf = useGLTF('/Transfuh.gltf'); 
+  return (
+    // <Center> automatically calculates the exact middle of any 3D model!
+    <Center>
+      <primitive 
+        object={gltf.scene} 
+        scale={[20, 20, 20]} 
+        // 1.57 radians is exactly 90 degrees. This spins it to face the camera!
+        rotation={[0, -1.57, 0]} 
+      />
+    </Center>
+  );
+}
 
 export default function NoLoginTransfer() {
   const [roomCode, setRoomCode] = useState('');
@@ -13,7 +31,7 @@ export default function NoLoginTransfer() {
   const [connected, setConnected] = useState(false);
   const [files, setFiles] = useState([]);
   const [receivedFiles, setReceivedFiles] = useState([]);
-  const [receivingProgress, setReceivingProgress] = useState({}); // 🚀 NEW: State for incoming file progress
+  const [receivingProgress, setReceivingProgress] = useState({}); 
   const [status, setStatus] = useState('Ready');
   const [warning, setWarning] = useState('');
   const [showQR, setShowQR] = useState(false);
@@ -26,10 +44,8 @@ export default function NoLoginTransfer() {
   const dragCounterRef = useRef(0);
   const pingIntervalRef = useRef(null);
   
-  // Ref to store incoming file chunks for massive files
   const incomingFilesRef = useRef({});
 
-  // Generate short 6-digit code
   const generateRoomCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
@@ -47,7 +63,6 @@ export default function NoLoginTransfer() {
     if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
   };
 
-  // Initialize PeerJS
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js';
@@ -102,7 +117,6 @@ export default function NoLoginTransfer() {
     };
   }, []);
 
-  // Connect to remote peer
   const connectToRoom = async () => {
     if (!remoteRoomCode || remoteRoomCode.length !== 6) {
       setStatus('Please enter a 6-digit room code');
@@ -133,11 +147,9 @@ export default function NoLoginTransfer() {
     });
   };
 
-  // RECEIVER LOGIC
   const handleIncomingData = async (data) => {
     if (data.type === 'ping') return; 
 
-    // Sanitize filename to prevent path traversal
     if (data.fileName) {
       data.fileName = data.fileName.split(/[\\/]/).pop().replace(/\.\./g, '');
     }
@@ -151,7 +163,6 @@ export default function NoLoginTransfer() {
         lastReportedProgress: 0
       };
       
-      // Add to receiving state so UI progress bar appears
       setReceivingProgress(prev => ({
         ...prev,
         [data.fileName]: { size: data.fileSize, type: data.fileType, progress: 0 }
@@ -165,7 +176,6 @@ export default function NoLoginTransfer() {
         fileTracker.chunks.push(data.chunk);
         fileTracker.receivedBytes += data.chunk.byteLength;
         
-        // Calculate incoming progress and throttle UI updates
         const currentProgress = Math.min(100, Math.round((fileTracker.receivedBytes / fileTracker.size) * 100));
         if (currentProgress >= fileTracker.lastReportedProgress + 5) {
           fileTracker.lastReportedProgress = currentProgress;
@@ -192,7 +202,6 @@ export default function NoLoginTransfer() {
         
         delete incomingFilesRef.current[data.fileName];
         
-        // Remove from active receiving progress state once finished
         setReceivingProgress(prev => {
           const copy = { ...prev };
           delete copy[data.fileName];
@@ -208,15 +217,13 @@ export default function NoLoginTransfer() {
     }
   };
 
-  // Remove a fully received file
   const removeReceivedFile = (fileId, fileUrl) => {
     setReceivedFiles(prev => prev.filter(f => f.id !== fileId));
     if (fileUrl) {
-      URL.revokeObjectURL(fileUrl); // Clean up browser memory!
+      URL.revokeObjectURL(fileUrl);
     }
   };
 
-  // SENDER LOGIC (High-Speed Engine)
   const sendSingleFile = async (fileObj, index) => {
     return new Promise(async (resolve) => {
       try {
@@ -394,12 +401,6 @@ export default function NoLoginTransfer() {
     return <File size={20} className="text-muted-sage" />;
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
-
   const connectionUrl = `${window.location.origin}?room=${roomCode}`;
 
   useEffect(() => {
@@ -437,16 +438,27 @@ export default function NoLoginTransfer() {
 
       <div className="max-w-[1200px] mx-auto pt-[40px] md:pt-[64px] px-[16px] md:px-[32px]">
         
-        <div className="text-center mb-[40px] md:mb-[64px] slide-in">
+        <div className="text-center mb-[40px] md:mb-[64px] slide-in flex flex-col items-center">
           
-          <h1 className="mb-[16px] md:mb-[24px]">
-            <img 
-              src={transfuhLogo} 
-              alt="Transfuh" 
-              className="mx-auto h-[100px] md:h-[150px] object-contain drop-shadow-md animate-slow-float" 
-            />
-            <span className="sr-only">Transfuh</span>
-          </h1>
+          {/* 🚀 NEW: 3D Canvas Header replaces the static image */}
+          <div className="w-full h-[120px] md:h-[180px] max-w-[500px] mx-auto cursor-grab active:cursor-grabbing mb-[16px]">
+            <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+              <Suspense fallback={null}>
+                {/* Lighting setup */}
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[10, 10, 10]} intensity={1.5} />
+                <directionalLight position={[-10, -10, -10]} intensity={0.5} />
+                
+                {/* Floating Animation Wrapper */}
+                <Float speed={2.5} rotationIntensity={0.2} floatIntensity={1.5}>
+                  <Logo3D />
+                </Float>
+                
+                {/* Adds a nice realistic environment reflection to the metallic material */}
+                <Environment preset="city" />
+              </Suspense>
+            </Canvas>
+          </div>
           
           <p className="font-heading-sec text-muted-sage text-[16px] text-white">Share files with anyone, instantly.</p>
         </div>
@@ -546,7 +558,6 @@ export default function NoLoginTransfer() {
                 </div>
               </div>
 
-              {/* Updated Receiver Panel with active progress & remove buttons */}
               {(receivedFiles.length > 0 || Object.keys(receivingProgress).length > 0) && (
                 <div className="card-primary bg-near-black">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] mb-[16px]">
@@ -560,7 +571,6 @@ export default function NoLoginTransfer() {
                   
                   <div className="space-y-[8px] max-h-[240px] overflow-y-auto pr-[4px]">
                     
-                    {/* Render files currently being received */}
                     {Object.entries(receivingProgress).map(([fileName, info]) => (
                       <div key={`incoming-${fileName}`} className="p-[12px] card-secondary flex items-center gap-[12px]">
                         <div className="shrink-0">{getFileIcon(info.type)}</div>
@@ -577,7 +587,6 @@ export default function NoLoginTransfer() {
                       </div>
                     ))}
 
-                    {/* Render completed received files */}
                     {receivedFiles.map((file) => (
                       <div key={file.id} className="p-[12px] card-secondary flex items-center gap-[12px]">
                         <div className="shrink-0">{getFileIcon(file.type)}</div>
